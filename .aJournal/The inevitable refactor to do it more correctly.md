@@ -65,4 +65,19 @@ accept this as the default.
 - a framework binary command (tbx) invokes the build.
 
 
+### Bootstrap and lifecycle
 
+- tbx executable
+- tbx build executes the webpack construction found in the node_modules/thunderbolt-framework
+location and outputs to 'output' which has two sides. One is the electronMain app, which
+is really the user app main that calls the EM startup stuff as an envelope.
+The other is bundle.js created from the UI side from the appMain.js and others,
+other webpack bundles will be made from user-supplied pages and code modules
+and these will form the Riot front.
+  
+[Lifecycle journal detail here](lifecycle%20overview.md)
+
+
+  
+  
+  

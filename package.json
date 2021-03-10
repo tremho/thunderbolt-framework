@@ -1,0 +1,37 @@
+{
+  "name": "thunderbolt-framework",
+  "version": "1.0.0",
+  "description": "A framework for desktop and mobile development with Node. Based on Electron, Riot, and Nativescript.",
+  "main": "build/src/index.js",
+  "bin": {
+    "tbx": "build/tbx.js"
+  },
+  "dependencies": {
+    "ansi-colors": "^4.1.1",
+    "typescript": "^4.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.33"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tremho/thunderbolt-framework.git"
+  },
+  "keywords": [
+    "framework",
+    "node",
+    "riot",
+    "mobile",
+    "desktop",
+    "development"
+  ],
+  "author": "tremho",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tremho/thunderbolt-framework/issues"
+  },
+  "homepage": "https://github.com/tremho/thunderbolt-framework#readme"
+}
