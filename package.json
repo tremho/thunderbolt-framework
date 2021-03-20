@@ -4,11 +4,24 @@
   "description": "A framework for desktop and mobile development with Node. Based on Electron, Riot, and Nativescript.",
   "main": "build/src/index.js",
   "bin": {
-    "tbx": "build/tbx.js"
+    "tbx": "build/tbx/tbx.js"
   },
   "dependencies": {
+    "@riotjs/webpack-loader": "^5.0.0",
     "ansi-colors": "^4.1.1",
-    "typescript": "^4.2.3"
+    "awesome-typescript-loader": "^5.2.1",
+    "base-64": "^1.0.0",
+    "electron": "^10.4.0",
+    "gen-format": "file:../gen-format",
+    "gen-logger": "file:../gen-logger",
+    "node-typescript-compiler": "^2.2.1",
+    "riot": "^5.3.1",
+    "sass": "^1.32.8",
+    "sourcemap-codec": "^1.4.8",
+    "tslib": "^2.1.0",
+    "typescript": "^3.9.9",
+    "uglifyjs-webpack-plugin": "^2.2.0",
+    "webpack": "^5.24.4"
   },
   "devDependencies": {
     "@types/node": "^14.14.33"

@@ -1,0 +1,70 @@
+<action-menu>
+    <span class="action-menu"
+          onclick="{openMenu}"
+    >
+        &#x2630;
+    </span>
+    <div class="menu-popover" if="{state.items}">
+        <ab-menu-item each="item in state.items"
+                      label="{item.label}"
+                      id="{item.id}"
+                      type="{item.type}"
+                      checked="{item.checked}"
+                      icon="{item.icon}"
+                      role="{item.role}"
+                      disabled="{item.disabled}"
+                      children="{item.children}"/>
+
+
+    </div>
+
+    <style>
+        .action-menu {
+            width: 2rem;
+            height: 2rem;
+            border: 1px solid darkkhaki;
+        }
+        .menu-popover {
+            cursor: pointer;
+            position: absolute;
+            background-color: white;
+            border: 1px solid black;
+        }
+    </style>
+    <script>
+      import {newCommon} from '../../../app-core/ComCommon'
+      let cm;
+      export default {
+        onBeforeMount() {
+          cm = newCommon(this)
+          cm.getApp().setActiveMenu(this)
+        },
+        onUpdated(props, state) {
+          if(state.open) {
+            let mn = this.$('.menu-popover')
+            if (mn) {
+              mn.style.visibility = 'visible'
+              mn.onmouseleave = (e) => {
+                mn.style.visibility = 'hidden'
+                let comp = cm.getComponent(e.srcElement)
+                comp.update({ open: false })
+              }
+            }
+          } else {
+            let mn = this.$('.menu-popover')
+            if (mn) {
+              mn.style.visibility = 'hidden'
+            }
+          }
+        },
+        openMenu(e) {
+          // console.log('open menu')
+          let comp = cm.getComponent(e.srcElement)
+          const menuId = comp.props.menuId
+          const menu = cm.getApp().MenuApi.getSubmenuFromId(menuId)
+          const items = menu.children
+          comp.update({open:true, items})
+        }
+      }
+    </script>
+</action-menu>

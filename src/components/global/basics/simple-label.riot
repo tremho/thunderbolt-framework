@@ -1,0 +1,40 @@
+
+<simple-label>
+    <div>
+        <span class="Label">{bound.text}</span>
+    </div>
+    <style>    
+    </style>
+    <script>
+        import {newCommon} from '../../../app-core/ComCommon'
+        let cm;
+        export default {
+            onBeforeMount(props, state) {
+              this.bound = new Object()
+              cm = newCommon(this)
+              this.bound.text = props.text || this.root.tagName
+              // console.log(this.root.tagName, 'onBeforeMount', props, state, this.bound)
+            },
+            onMounted(props, state) {
+              // console.log(this.root.tagName, 'onMounted', props, state, this.bound)
+              let span = this.$('span')
+              cm.setCommonProps(span, props)
+              cm.bindComponent()
+            },
+            onBeforeUpdate(props, state) {
+              this.bound.text = this.bound.text || props.text
+              // console.log(this.root.tagName, 'onBeforeUpdate', props, state, this.bound)
+            },
+            onUpdated(props, state) {
+              // console.log(this.root.tagName, 'onUpdated', props, state, this.bound)
+            },
+            onBeforeUnmount(props, state) {
+              // console.log(this.root.tagName, 'onBeforeUnmount', props, state, this.bound)
+              this.bound = {}
+            },
+            onUnmounted(props, state) {
+              // console.log(this.root.tagName, 'onUnmounted', props, state, this.bound)
+            }
+    }
+    </script>
+</simple-label>    

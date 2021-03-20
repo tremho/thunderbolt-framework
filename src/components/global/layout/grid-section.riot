@@ -1,0 +1,31 @@
+
+<grid-section>
+    <div>
+        <slot />
+    </div>
+    <style>
+    </style>
+    <script>
+
+      import {newCommon} from '../../../app-core/ComCommon'
+      let cm;
+
+      export default {
+        state: {
+        },
+        onBeforeMount(props, state) {
+          // https://css-tricks.com/snippets/css/complete-guide-grid/
+          console.log(this.root.tagName)
+          cm = newCommon(this)
+          this.root.style.gridArea = props.area || props.gridArea;
+          this.root.style.justifySelf = props.justify || props.justifySelf
+          this.root.style.alignSelf = props.align || props.alignSelf
+        },
+        onMounted(props, state) {
+          let div = this.$('DIV')
+          cm.setCommonProps(div, props)
+          cm.applyContainerStyles(div, props.containerStyle)
+        }
+      }
+    </script>
+</grid-section>

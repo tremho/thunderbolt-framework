@@ -1,0 +1,17 @@
+<fill-space>
+    <span>&nbsp;</span>
+    <script>
+      import {newCommon} from '../../../app-core/ComCommon'
+      let cm;
+      export default {
+        onBeforeMount(props, state) {
+          cm = newCommon(this)
+        },
+        onMounted(props, state) {
+          console.log(this.root.tagName)
+          let span = this.$('span')
+          cm.setCommonProps(span, props)
+        }
+      }
+    </script>
+</fill-space>

@@ -1,0 +1,25 @@
+<stack-layout>
+    <div>
+        <slot />
+    </div>
+    <style>
+    </style>
+    <script>
+
+      import {newCommon} from '../../../app-core/ComCommon'
+      let cm;
+
+      export default {
+        onBeforeMount(props, state) {
+          cm = newCommon(this)
+        },
+        onMounted(props, state) {
+          console.log(this.root.tagName)
+          let div = this.$('DIV')
+          cm.setCommonProps(div, props)
+          div.style.display = props.orientation === 'horizontal'? 'inline-flex' : 'block'
+          cm.parseFits(props)
+        }
+      }
+    </script>
+</stack-layout>

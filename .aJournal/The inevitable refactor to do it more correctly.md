@@ -77,7 +77,128 @@ and these will form the Riot front.
   
 [Lifecycle journal detail here](lifecycle%20overview.md)
 
+---------------
+# Inevitable refactor part II
+Okay, so I ran into a roadblock in part I
+for whatever reason, I can't import electron APIs... <sigh>
 
+So for a sanity check, I went back to the [basic Electron
+docs]('https://www.electronjs.org/docs/tutorial/quick-start') 
+and see that I may still be overcomplicating my architecture
+here.
+
+So let's do this:
+- create a sanity basic-electron project and follow the
+quickstart verbatim
+  - okay, but it doesn't work as advertised.  'process' is not defined
+  in the renderer scope, even though node integration is set to true.
+  I'm not too worried about that because that's not important in our
+  context, but it is disconcerting that the example doesn't work out
+  of the gate like it should.  
+    
+
+- the difference now is that the index.html we want needs
+to pull in a built bundle from our project.
+- the other difference is that we would be invoking electron from
+our app space instead of from the framework space, requiring the
+  user to install electron.  No huge deal, but I'd like it better
+  if we could make thunderbolt-framework the only install.
+  There's also the question of riot as well...
+  
+- __here's a big difference:__ `npm start` calls electron . from the execution root.
+We aren't doing that.  we're trying to run the node app, which is wrong.
+And in fact, we get a similar failure when we run the sanity app that way.
+<br/>
+So back at tbTest, let's run electron and see what we get.<br/>
+___Oh Crap! That was it!  I am an idiot!___   
+  
+#### So what I need to do is this:
+- in tbx:
+- need to fabricate a package.json for execution that points to main.js
+- need to tsc backMain and copy to main.js (node-typescript-compiler)
+- need to make an executable start script that invokes Electron from
+our embedded path.  Note this is platform dependent.
+
+---------------------
+#### Current state
+The Ides of March have us at basically the point our PoSPoC was at
+in Pueblo, but with a better foundation and structure.
+
+#### 3/17
+- √ Imports and logging 
+- √ Prove out model setup in `tbAppFront`
+  
+#### 3/20
+- √ Refactor tbx into multiple sub modules per command
+- Build environment
+  - √ create BuildEnvironment.json and put into a hidden temp (.gen) off of
+  projPath and alias pack it into bundle from there
+  
+  - √ use tbx build; tbx run instead of dev-side hack scripts
+    - √ detect file-newer states / build needed
+  
+- ◊√ CSS / SASS
+  - √ Install `sass` module
+  - √ establish projPath `/src/scss` as the scss path
+  - √ establish `app.scss` for scss root
+  - √ process during build  
+      - √ css file generated to .gen folder
+  - ◊ We are going to want to make framework css too?; make a tb.css file
+  as part of the framework (include FA)
+  -  <del>pack css files with webpack during build</del>
+      - this bit isn't working
+      - √ Screw the bundle.  generate to build/front instead
+  
+
+- source mapping
+  - see https://survivejs.com/webpack/building/source-maps/
+  - √ Should be able to use external maps.
+    - Yes. `devtool: source-map` creates bundle.js.map
+  - √ use this to generate smx-info
+    - smx build proc reads this and makes smx-info.js for bundle.js
+    using the sources and mappings data.
+    - √ works under development
+    - ◊ works under production
+        - <span style="color:red;">no.</span> Check [uglify option.](https://v4.webpack.js.org/plugins/uglifyjs-webpack-plugin/#sourcemap)
+        - <span style="color:blue;"><b>Still No.</b></span>
+          - I don't think there's a way to remedy this.
+          - √ change logger to display ??? if smx unavailable
+          - ◊ later, when we do mode options, don't generate smx-info if mode is production
+    - √ works under none
+
+--------------
+
+#### ???
+- Menu
+- Toolbars and indicators
+
+- File API
+
+- Back-Side API additions
+- Custom Components
+
+- The whole Nativescript export and build enchilada
+
+
+- Test and handle webpack errors (e.g. missing module w/o try/catch)
+- Verbosity options for build output (webpack stats)
+- bundle analysers with tbx inspect <type>
+
+- build mode option for dev or release.  Option to force sourcemap
+on a release build (learn about hidden source maps and/or other indirect options)
+  
+
+
+- Ready for first release  (let's shoot for 4/15)
+  
+- tbx fineries to come as . feature updates
+  - init
+  - doc
+  - check
+  - publish
+  - look into updateable code via electron  
+
+  
   
   
   

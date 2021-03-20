@@ -1,0 +1,26 @@
+<ab-backbutton>
+    <span class="back-button" onclick="{goBack}">&lt;&nbsp;Back</span>
+    <style>
+        .back-button {
+            display:inline-block;
+            cursor: pointer;
+            font-size: 0.75rem;
+            color: blue;
+            align-content: center;
+            justify-self: left;
+            padding-right: 0.25rem;
+        }
+    </style>
+    <script>
+      import {newCommon} from '../../../app-core/ComCommon'
+      let cm;
+      export default {
+        onBeforeMount() {
+          cm = newCommon(this)
+        },
+        goBack(e) {
+          cm.getApp().navigateBack()
+        }
+      }
+    </script>
+</ab-backbutton>

@@ -1,0 +1,38 @@
+<grid-layout>
+    <div style="display: grid;">
+        <slot/>
+    </div>
+    <style>
+    </style>
+    <script>
+      import {newCommon} from '../../../app-core/ComCommon'
+      let cm;
+      export default {
+        state: {
+        },
+        onBeforeMount(props, state) {
+          cm = newCommon(this)
+        },
+        onMounted(props, state) {
+          let div = this.$('DIV')
+          cm.setCommonProps(div, props)
+          let areas = []
+          let i=1;
+          let areaRow
+          while((areaRow = props['areaRow'+i])) {
+            areas.push('"'+areaRow+'"')
+            i++
+          }
+          let ablock = areas.join(' ')
+          div.style.gridTemplateAreas = ablock
+          div.style.gridTemplateColumns = props.gridTemplateColumns
+          div.style.gridTemplateRows = props.gridTemplateRows
+          div.style.gridTemplate = props.gridTemplate
+          div.style.gridAutoColumns = props.gridAutoColumns
+          div.style.gridAutoRows = props.gridAutoRows
+          div.style.gridAutoFlow = props.gridAutoFlow
+          cm.parseFits(props)
+        }
+      }
+    </script>
+</grid-layout>

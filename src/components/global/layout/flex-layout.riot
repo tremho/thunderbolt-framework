@@ -1,0 +1,27 @@
+<flex-layout>
+    <div style="display: flex;">
+        <slot/>
+    </div>
+    <style>
+    </style>
+    <script>
+      import {newCommon} from '../../../app-core/ComCommon'
+      let cm;
+      export default {
+        state: {
+        },
+        onBeforeMount(props, state) {
+          cm = newCommon(this)
+        },
+        onMounted(props, state) {
+          console.log(this.root.tagName)
+          let div = this.$('DIV')
+          cm.setCommonProps(div, props)
+          div.style.flexFlow = (props.orientation==='horizontal' ? 'row' : 'column') + (props.wrap ? ' wrap' : ' nowrap')
+          div.style.justifyContent = props.justify || props.justifyContent
+          div.style.alignItems = props.align || props.alignItems
+          cm.parseFits(props)
+        }
+      }
+    </script>
+</flex-layout>

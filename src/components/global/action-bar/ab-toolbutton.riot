@@ -1,0 +1,84 @@
+<ab-toolbutton>
+    <div class="ab-toolbutton { bound.className || '' }">
+        <div style="vertical-align: middle; text-align: center">
+            <div style="position:absolute" onclick="{performAction}">
+                <img if="{bound.icon}" src="{bound.icon}" style="position:absolute; left:-0.5rem; top:-0.5rem;">
+                <span style="position:absolute; left:-0.4rem; top:-0.5rem;">{props.label}</span>
+            </div>
+        </div>
+    </div>
+    <style>
+        .ab-toolbutton {
+            border: 2px solid blue;
+            height: 2rem;
+            width: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+        }
+        [data-state='on'] {
+            background-color: red;
+        }
+    </style>
+    <script>
+      import {newCommon} from '../../../app-core/ComCommon'
+      let cm;
+      export default {
+        onBeforeMount(props, state) {
+          cm = newCommon(this)
+          this.bound = Object.assign({}, props)
+          delete this.bound.icons
+          state.state = props.state
+          // apply type
+          if(props.type) {
+            this.extension = cm.getApp().createExtensionType(props.type)
+          }
+
+        },
+        onMounted(props, state) {
+          console.log(this.root.tagName, 'onBeforeMount', props, state)
+          let div = this.$('div')
+          // apply tooltip handling
+          div.setAttribute('title', props.tooltip || props.label)
+          if(this.extension) {
+            // apply extension handling
+            div.onmousedown = (e) => {
+              let comp = cm.getComponent(e.srcElement)
+              let prevent = this.extension.onPress(comp)
+              if(prevent) {
+                e.stopPropagation()
+                e.preventDefault()
+              }
+            }
+            div.onmouseup = (e) => {
+              let comp = cm.getComponent(e.srcElement)
+              this.extension.onRelease(comp)
+            }
+            this.extension.onSetToPage(this)
+          }
+          // bind to a state change on this component
+          // and update and call this.extension.onStateChange(comp, comp.bound.state)
+          cm.getCombinder().applyComponentBindings(this, "toolbar-"+this.bound.id+".state", (comp,prop,value) =>{
+            if(prop === 'state') { // sanity
+              if(comp.extension) comp.extension.onStateChange(comp, value)
+              comp.update({ state: value })
+            }
+          })
+        },
+        onBeforeUpdate(props, state) {
+          console.log(this.root.tagName, 'onBeforeUpdate', props, state)
+          let div = this.$('div')
+          // update dom attributes to match state
+          div.dataset.state = state.state
+          this.bound.icon = props.icons && props.icons[state.state] // pick the icon for the state
+        },
+        performAction(e) {
+          let comp = cm.getComponent(e.srcElement)
+          if(!comp.disabled) {
+            cm.getApp().onToolAction(comp.props)
+          }
+        },
+      }
+    </script>
+</ab-toolbutton>

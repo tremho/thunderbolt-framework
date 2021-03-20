@@ -1,0 +1,81 @@
+<action-bar>
+    <div class="action-bar">
+        <ab-backbutton if="{!props.noBack}"/>
+        <p if="{props.noBack}"/>
+        <action-toolbar>
+             <ab-toolbutton each="{item in state.tools}"
+                            label="{item.label}"
+                            id="{item.id}"
+                            state="{item.state}"
+                            className="{item.className}"
+                            type="{item.type}"
+                            tooltip="{item.tooltip}"
+                            icons="{item.icons}"
+                            />
+
+        </action-toolbar>
+        <action-menu if="{props.menuId}" menu-id="{props.menuId}"/>
+        <p if="{!props.menuId}"/>
+        <ab-title text="{props.text}"/>
+        <indicator-bar>
+            <ab-indicator each="{item in state.indicators}"
+                           label="{item.label}"
+                           id="{item.id}"
+                           state="{item.state}"
+                           className="{item.className}"
+                           type="{item.type}"
+                           tooltip="{item.tooltip}"
+                           icons="{item.icons}"
+            />
+
+        </indicator-bar>
+    </div>
+    <style>
+        .action-bar {
+            display:grid;
+            grid-template-columns: 2rem 1fr 2rem 2fr 2fr;
+            grid-template-areas: "back toolbar menu title indicators";
+            column-gap: 6px;
+            align-items: center;
+            border-bottom: 0.2rem solid cornflowerblue;
+            padding-bottom: 0.4rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+    <script>
+      import {newCommon} from '../../../app-core/ComCommon'
+      import * as riot from 'riot'
+      let cm;
+      export default {
+        onBeforeMount (props, state) {
+          this.bound = new Object()
+          cm = newCommon(this)
+          console.log(this.root.tagName, 'onBeforeMount', props, state, this.bound)
+          // get the app (model) toolbar buttons and indicators
+          try {
+            state.tools = cm.getApp().model.getAtPath('toolbar.' + props.toolbarId)
+            state.indicators = cm.getApp().model.getAtPath('indicators.' + props.indicatorsId)
+          } catch(e) {
+            // console.error(e)
+          }
+        },
+        onMounted (props, state) {
+          console.log(this.root.tagName, 'onMounted', props, state, this.bound)
+          cm.bindComponent()
+        },
+        onBeforeUpdate (props, state) {
+          console.log(this.root.tagName, 'onBeforeUpdate', props, state, this.bound)
+        },
+        onUpdated (props, state) {
+          console.log(this.root.tagName, 'onUpdated', props, state, this.bound)
+        },
+        onBeforeUnmount (props, state) {
+          console.log(this.root.tagName, 'onBeforeUnmount', props, state, this.bound)
+          this.bound = {}
+        },
+        onUnmounted (props, state) {
+          console.log(this.root.tagName, 'onUnmounted', props, state, this.bound)
+        }
+      }
+    </script>
+</action-bar>

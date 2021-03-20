@@ -1,0 +1,113 @@
+<ab-menu-item>
+    <!-- normal -->
+    <p if="{!props.children && props.role!=='separator'}"
+       class="{props.disabled?'disabled':''}"
+       onclick="{performAction}"
+    >
+        <span>
+        <span if="{props.type==='checkbox'}" style="font-size: x-large">
+            <span if="{!props.checked}"> &#x2610; </span>
+            <span if="{props.checked}"> &#x2611; </span>
+        </span>
+        <span if="{props.icon}">
+            <img src="{props.icon}"/>
+        </span>
+        {props.label}
+        </span>
+    </p>
+    <!-- submenu -->
+    <p if="{props.children}"
+       onclick="{openSubmenu}" class="{props.disabled?'disabled':''}" onmouseleave="{closeSubmenu}"
+    >
+        {props.label} &#x25b8;
+    </p>
+
+    <!-- separator -->
+    <div if="{props.role==='separator'}"
+    >
+        <hr/>
+    </div>
+
+
+    <div class="sub-menu" if="{state.submenu}" onmouseenter="{keepOpen}" onmouseleave="{allowClose}">
+        <ab-menu-item each="{item in props.children}"
+                      label="{item.label}"
+                      id="{item.id}"
+                      type="{item.type}"
+                      role="{item.role}"
+                      checked="{item.checked}"
+                      icon="{item.icon}"
+                      disabled="{item.disabled}"
+                      children="{item.children}"/>
+    </div>
+    <style>
+        .disabled {
+            color:lightgray;
+        }
+        .sub-menu {
+            position: fixed;
+            background-color: white;
+            border: 1px solid black;
+            padding-right: 8px;
+        }
+    </style>
+    <script>
+      import {newCommon} from '../../../app-core/ComCommon'
+      let cm;
+      let inside = 0
+      export default {
+        onBeforeMount() {
+          cm = newCommon(this)
+        },
+        onUpdated(props, state) {
+          if(state.submenu) {
+            // console.log('position submenu at '+JSON.stringify(state.submenu))
+            let sm = this.$('.sub-menu')
+            if(sm) {
+              sm.style.top = state.submenu.top + 'px'
+              sm.style.left = state.submenu.left + 'px'
+              sm.onmouseleave = (e) => {
+                let comp = cm.getComponent(e.srcElement)
+                comp.update({ submenu: false })
+              }
+
+            }
+          }
+        },
+        performAction(e) {
+          let comp = cm.getComponent(e.srcElement)
+          if(!comp.disabled) {
+            cm.getApp().onMenuAction(comp.props)
+          }
+        },
+        openSubmenu(e) {
+          // console.log('openSubmenu')
+          let comp = cm.getComponent(e.srcElement)
+          let itemBounds = e.srcElement.getBoundingClientRect()
+          comp.update({submenu: {top:itemBounds.top - 12, left:itemBounds.right }})
+        },
+        closeSubmenu(e) {
+          // console.log('closeSubmenu?')
+          setTimeout(() => {
+            // console.log('closeSubmenu')
+            if(!inside) {
+              // console.log('closeSubmenu!')
+                let comp = cm.getComponent(e.srcElement)
+                if(comp) comp.update({ submenu: null })
+              }
+            }, 100)
+        },
+        keepOpen(e) {
+          inside++;
+          // console.log('keep open '+inside)
+        },
+        allowClose(e) {
+          inside--;
+          // console.log('allow close '+inside)
+        }
+
+
+      }
+    </script>
+
+</ab-menu-item>
