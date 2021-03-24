@@ -15,8 +15,8 @@ let curMenu
 let smstack:any[] = []
 
 // async
-function readMenuDef(app:AppCore) {
-    const menuDef = 'src/application/menudef.txt'
+function readMenuDef(app:AppCore, menuPath?:string) {
+    const menuDef = menuPath || 'src/application/menudef.txt'
     if(app.fileExists(menuDef)) {
         return app.readFileText(menuDef).then(defText => {
             return processMenuDef(app, defText)
@@ -516,11 +516,16 @@ function processIndicatorLine(line) {
 
 
 // Entry point called from AppCore::setupUIElements
-export function setupMenu(app:AppCore) {
+export function setupMenu(app:AppCore, menuData?:string) {
     appmenu = []
     appTools = []
     appIndicators = []
     smstack = []
     app.MainApi.resetMenu()
-    return readMenuDef(app)
+    if(menuData) {
+        // processMenuDef(app, menuData)
+        return readMenuDef(app, menuData)
+    }
+    // return readMenuDef(app)
+    return Promise.resolve()
 }

@@ -220,10 +220,12 @@ export class ComCommon extends NotCommon{
      */
     getComponentAttribute(component:any, attName:string):string {
         if(check.riot) {
-            let value = component.props && component.props[attName]
-            if (value) return value
+            // prefer the 'div' attribute, but use the root if nothing in the div
             let el = this.getContainer(component)
-            return el && el.getAttribute(attName)
+            if(!el) el = component.root
+            let value =  el && el.getAttribute(attName)
+            if(value) return value;
+            return component.props && component.props[attName]
         } else {
             if(!component) component = this.rootComponent
             const view = (component as any) // view
@@ -401,6 +403,12 @@ export class ComCommon extends NotCommon{
             component = this.riot
             if(!component.bound) component.bound = {}
         }
+
+        const taglc = component.root.tagName.toLowerCase()
+        if(taglc.substring(taglc.length-5) === '-page') {
+            component.bound.data = this.model.getAtPath('page-data.' + taglc)
+        }
+
         let scopeComp = component
 
         // walk up from here until we lose parentage (page scope)

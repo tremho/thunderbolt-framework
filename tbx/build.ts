@@ -4,6 +4,7 @@ import * as path from "path";
 import * as fs from "fs";
 import {gatherInfo} from './gatherInfo'
 import {createSMX} from './smx'
+import {makePageList} from "./mainPageList";
 import * as os from "os"
 import * as webpack from "webpack";
 import * as UglifyPlugin from "uglifyjs-webpack-plugin"
@@ -16,7 +17,7 @@ let tbxPath,  // path to the tbx script itself. This establishes where framework
     packPath, // path to directory in framework that holds the sources for the app bootstrap
     projPath, // path to the project
     buildPath, // path to the project build directory space
-    distPath,  // path to the project build space for publishing NOT CURRENTL USED
+    distPath,  // path to the project build space for publishing NOT CURRENTLY USED
     modulesPath, // path to the node_modules of the framework in the project
     tbBuildSrc, // path to the framework 'src' folder
     fwcomp,  // path to the framework components folder tree
@@ -120,12 +121,12 @@ function doWebpackBuild() {
         also a command option for source maps (devtool option below)
          */
         webpack({
-            mode: 'development', // or development or production TODO: cmd option
+            mode: 'none', // or development or production TODO: cmd option
             context: packPath,
             entry: './appMain.js',
             output: {
                 path: buildPath,
-                publicPath: distPath,
+                publicPath: buildPath,
                 filename: 'bundle.js'
             },
             optimization: {
@@ -139,6 +140,7 @@ function doWebpackBuild() {
                 alias: {
                     Project: srcDir,
                     Generated: genDir,
+                    Assets: path.join(srcDir, 'assets'),
                     Pages: appPages,
                     Framework: tbBuildSrc,
                     BuildPack: packPath,
@@ -146,7 +148,7 @@ function doWebpackBuild() {
                     RiotMain: riotMain
                 },
                 modules: [modulesPath, appPages, genDir],
-                extensions: [ '.tsx', '.ts', '.js', '.riot', 'css' ],
+                extensions: [ '.tsx', '.ts', '.js', '.riot', 'css', 'txt' ],
             },
             module: {
                 rules: [
@@ -162,6 +164,10 @@ function doWebpackBuild() {
                             configFileName: `${packPath}/tsconfig.json`,
                             transpileOnly: true // skip type checks
                         }
+                    },
+                    {
+                        test:/\.(txt|png|jpg)$/i,
+                        type: 'asset/resource'
                     }
                 ]
             }
@@ -170,7 +176,21 @@ function doWebpackBuild() {
             if(err) {
                 console.error('Webpack error', err)
             }
-            console.log('webpack stats', stats.toString('summary'))
+            stats.compilation.errors.forEach(err => {
+                console.error(ac.bold.red('Error:'), err.message)
+            })
+            stats.compilation.warnings.forEach(warn => {
+                const msg = warn.message
+                if(msg.indexOf('Module not found') === -1) {
+                    console.warn(ac.blue('Warning:'), warn.message)
+                }
+            })
+
+            // console.log('webpack stats', stats.toString('summary'))
+            if(err || stats.hasErrors()) {
+                process.exit(-1)
+            }
+            console.log('bundle.js creation complete')
             resolve()
         })
     })
@@ -338,6 +358,7 @@ export function doBuild() {
 
         generateBuildEnvironment()
         compileScss()
+        makePageList()
         doWebpackBuild().then(() => {
             createSMX()
             mainAndExec()

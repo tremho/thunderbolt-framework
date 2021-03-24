@@ -1,0 +1,25 @@
+
+<app>
+    <div bind="navigation.pageId">
+        <file-test-page if="{bound.pageId === 'file-test'}"/>
+        <main-page if="{bound.pageId === 'main'}"/>
+        <next-page if="{bound.pageId === 'next'}"/>
+        <stack-test-page if="{bound.pageId === 'stack-test'}"/>
+    </div>
+    <style>
+    </style>
+    <script>
+      import {newCommon} from 'Framework/app-core/ComCommon'
+      let cm;
+      export default {
+        state: {},
+        bound: {},
+        onMounted(props, state) {
+          cm = newCommon(this)
+          cm.bindComponent()
+          console.log('App Page Context Mounted', this.bound)
+        }
+      }
+    </script>
+</app>
+  

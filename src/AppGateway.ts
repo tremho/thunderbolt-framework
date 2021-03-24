@@ -1,25 +1,13 @@
 
-import {readFileText, fileExists} from "./FileAPI"
-import {addMenuItem, enableMenuItem, deleteMenuItem, changeMenuItem, clearMenu, resetMenu, setToMenuBar} from "./DesktopMenu";
-//
-// function addMenuItem(a, item, target) {
-//     console.log('addMenuItem ', item, target)
-// }
+import * as fileApi from "./FileAPI"
+import * as menuApi from "./DesktopMenu";
 
 
 const exportedFunctions = {
     messageInit: () => { /*console.log('message init stub hit')*/ },
 
-    addMenuItem,
-    enableMenuItem,
-    deleteMenuItem,
-    changeMenuItem,
-    clearMenu,
-    setToMenuBar,
-    resetMenu,
-
-    readFileText,
-    fileExists
+    ...menuApi,
+    ...fileApi
 }
 
 /**
@@ -75,3 +63,4 @@ export class AppGateway {
         }
     }
 }
+

@@ -21,23 +21,17 @@ riot.mount('[data-riot-component]')
 const mountApp = riot.component(App)
 const coreApp = new AppCore()
 // console.log('starting app...')
-coreApp.setupUIElements().then(() => {
+coreApp.setupUIElements(AppFront).then(() => {
 
-  // Add things from here to the environment. (required)
-  const env = coreApp.model.getAtPath('environment')
-  env.framework.riot = riot.version // add the riot version here
-  coreApp.model.setAtPath('environment', env)
-
-  console.log('Calling front app...')
-  Promise.resolve(AppFront.appStart(coreApp)).then(() => {
+    // Add things from here to the environment. (required)
+    const env = coreApp.model.getAtPath('environment')
+    env.framework.riot = riot.version // add the riot version here
+    coreApp.model.setAtPath('environment', env)
 
     console.log('now mounting and running Riot app UI')
-    mountApp( document.getElementById('root'), { app: coreApp } )
+    mountApp(document.getElementById('root'), { app: coreApp })
     // go to main page
     coreApp.navigateToPage('main')
-
-  })
-
 })
 
 

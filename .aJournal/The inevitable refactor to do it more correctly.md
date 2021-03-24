@@ -170,10 +170,66 @@ in Pueblo, but with a better foundation and structure.
 
 #### ???
 - Menu
+    - √ Definition. __Working as expected for definition and rendering__
+    - √ need to verify handling
+    - Look at asset handling and images
 - Toolbars and indicators
+  - Menu def appears to be working
+  - Not seeing controls.  Check components and CSS
+
+---
+√ Need to call appStart (or do default app start) at setupUI time
+and clear the gate only after establishing any menu models.
+
+√ Time is now: need to trap, display and break on webpack errors.
+
+---
+
+√ Now we need to do app.riot generation from page list
+  - _Is is funky to write into node_modules space? <span style="color:green;"><b>I think OK</b>
+
+- Make new pages for testing, etc
+  - change page appStart to pageStart
+  
+  - ◊ File Test Page is broken and mod/messed up.
+    - Failing to bind, so crashing on object resolution in riot
+    - Why isn't page-level binding working?
+    - can we avoid nesting with a spread op? use underscore? (obj_prop)
+    
+---
+### Stupid bug issues 3/24
+- preload.js is not generated into build properly
+- weird behavior with onMenuAction responder for nav change to file. mske async?
+
+---
+### Change in page data approach
+- create app function to `setPageData(obj)` and pass an object with values
+- this becomes attached to 'bound' as 'data'
+  - consider making simply 'data'
+- set/update a value with `setPageData(prop, value)`. 
+  - this will update binding (whole data object)
+  
+#### 3/24
+ - instantiate PageComp in riot pages with boilerplate
+  - is there any way to automate/simplify this?
+  
+
+---
+
+- Remote API errors: rejection forwarding
 
 - File API
-
+  - error reporting protocol
+   - file exist
+   - read/write text and ArrayBuffer
+   - delete
+   - rename
+   - move
+   - copy  
+   - fstat
+   - mkdir / -p
+   - rmdir / -fr
+   - read directory
 - Back-Side API additions
 - Custom Components
 

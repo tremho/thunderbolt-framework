@@ -125,7 +125,7 @@ export class AppCore {
         return Promise.all([this.componentGate, this.modelGate])
     }
 
-    public setupUIElements() {
+    public setupUIElements(appFront:any) {
         // console.log('>>> setupUIElements >>>')
 
         // set the infomessage log handling
@@ -166,13 +166,20 @@ export class AppCore {
         // this will allow us to do platform branching and so on
         this.model.addSection('environment', environment)
 
-        // Set up menus
+        // Set up app models and menus
         this.model.addSection('menu', {})
-        setupMenu(this).then(()=> {
-            this.modelGateResolver()
-        })
+        if(appFront) {
+            Promise.resolve(appFront.appStart(this)).then(() => {
+                this.modelGateResolver()
+            })
+        } else {
+            // default app start
+            setupMenu(this).then(()=> {
+                this.modelGateResolver()
+            })
+        }
 
-        if(coreApp) coreApp.setupModel(this.model)
+        // if(coreApp) coreApp.setupModel(this.model)
         // Set up our app display
         // // TODO: remove when done with initial setup testing
         // this.model.addSection('testValues', {mainLabel: 'Hello, World! This is ThunderBolt!'})
@@ -182,6 +189,13 @@ export class AppCore {
         // console.log('model gate cleared')
         return this.waitReady()
 
+    }
+
+    setupMenu(menuPath:string) {
+        const menuData = require('Assets/'+( menuPath ) ).replace('/front', '/front/')
+
+        console.log('menu data', menuData)
+        return setupMenu(this, menuData)
     }
 
     // public setupDesktopMenu(desktopMenu) {
@@ -209,16 +223,21 @@ export class AppCore {
         }
 
 
-        // TODO: Handle anything global here
-        // dispatch to current activity.  include app instance in props
+        // TODO: Handle anything framework global here
+
+        // dispatch to current page activity.  include app instance in props
+        let handled = false
         if(this.currentActivity) {
             if(typeof this.currentActivity.onMenuAction === 'function') {
-                this.currentActivity.onMenuAction(menuEvent)
+                handled = this.currentActivity.onMenuAction(menuEvent)
             }
         }
-        const handler = this.menuHandlers[props.id]
-        if(handler) {
-            handler(menuEvent)
+        // now call any app registered menu handlers (not page bound)
+        if(!handled) {
+            const handler = this.menuHandlers[props.id]
+            if (handler) {
+                handler(menuEvent)
+            }
         }
     }
     public onToolAction(props) {
@@ -290,20 +309,24 @@ export class AppCore {
 
         // set the page in the model.  For Riot, this forces the page to change on update
         // for mobile, we need to do that through native navigation, but we still want the model to be the same
-        this.model.setAtPath('navigation.context', context || {})
-        // this next line is what actually triggers the display of the page
-        this.model.setAtPath('navigation.pageId', pageId || '', true)
+        // these next two lines is what actually triggers the display of the page
+        // so let's do it async
+        console.log('$$$$$$$$$$ navigate to page')
+        // setTimeout(() => {
+            this.model.setAtPath('navigation.context', context || {})
+            this.model.setAtPath('navigation.pageId', pageId || '', true)
 
-        // note that this isn't used on the mobile side, but we record it anyway.
-        // this may be useful later if we have any history-related functionality in common.
-        let curActivityId = this.currentActivity && this.currentActivity.activityId
-        let curContext = this.currentActivity && this.currentActivity.context
-        if(!skipHistory) {
-            this.history.push({
-                pageId: curActivityId,
-                context: curContext
-            })
-        }
+            // note that this isn't used on the mobile side, but we record it anyway.
+            // this may be useful later if we have any history-related functionality in common.
+            let curActivityId = this.currentActivity && this.currentActivity.activityId
+            let curContext = this.currentActivity && this.currentActivity.context
+            if(!skipHistory) {
+                this.history.push({
+                    pageId: curActivityId,
+                    context: curContext
+                })
+            }
+        // })
 
         if(check.mobile) {
             let pageref = '~/pages/' + pageId
@@ -327,6 +350,44 @@ export class AppCore {
             activity.context = context;
             this.startPageLogic(pageId, activity, context)
         }
+
+
+    }
+
+    /**
+     * Sets the data for a page
+     * accessed via `bound.data` in page markup
+     * There are two forms for this.
+     * 1: Call with a single object argument following the page name to set all the properties of the 'data' object.
+     * 2: Call with the property name, value to set an individual property of the page data object
+     *
+     * @param pageName
+     * @param item
+     * @param value
+     */
+    public setPageData(pageName:string, item:object | string, value?:any) {
+        let data
+        try {
+            data = this.model.getAtPath('page-data.' + pageName) || {}
+        } catch(e) {
+            const pgs:any = {}
+            pgs[pageName] = {}
+            const pages = this.model.addSection('page-data', pgs)
+        }
+        if(typeof item === 'object') {
+            this.model.setAtPath('page-data.'+pageName, item)
+        } else {
+            data[item] = value
+            this.model.setAtPath('page-data.'+pageName, data )
+        }
+    }
+
+    /**
+     * Returns the data object for the named page, if one exists
+     * @param pageName
+     */
+    public getPageData(pageName:string) {
+        return  this.model.getAtPath('page-data.' + pageName)
     }
 
 

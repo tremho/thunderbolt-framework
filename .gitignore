@@ -105,3 +105,8 @@ dist
 
 # TernJS port file
 .tern-port
+
+# JS files generate
+*.js
+# JS files not generated
+!src/preload.js
