@@ -6,7 +6,7 @@ export class ToolExtension {
      * @param component
      */
     onSetToPage(component) {
-        console.log('onSetToPage', component)
+        // console.log('onSetToPage', component)
     }
 
     /**
@@ -15,7 +15,7 @@ export class ToolExtension {
      * @param state
      */
     onStateChange(component, state) {
-        console.log('onStateChange', component, state)
+        // console.log('onStateChange', component, state)
 
     }
 
@@ -26,7 +26,7 @@ export class ToolExtension {
      * @return {boolean} return true to prevent propagation / click handling
      */
     onPress(component) {
-        console.log('onPress', component)
+        // console.log('onPress', component)
     }
 
     /**
@@ -35,7 +35,7 @@ export class ToolExtension {
      * @param component
      */
     onRelease(component) {
-        console.log('onRelease', component)
+        // console.log('onRelease', component)
 
     }
 

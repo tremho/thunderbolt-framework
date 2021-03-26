@@ -11,14 +11,22 @@ function PathNotFound(path) {
     return new PathNotFound(path)
 }
 
-export function readFileText(filename) {
-    let fpath = path.isAbsolute(filename) ? filename : path.normalize(path.join(__dirname, '..','..','..','..',filename))
-    const contents = fs.readFileSync(fpath).toString()
+export function getAppPath() {
+    let appPath = process.cwd()
+    if(!appPath) {
+        return './'
+    }
+    return appPath.substring(0, appPath.lastIndexOf('/'))
+}
+
+
+
+export function readFileText(pathName) {
+    const contents = fs.readFileSync(pathName).toString()
     console.log(contents)
     return contents
 }
-export function fileExists(filename) {
-    let fpath = path.normalize(path.join(__dirname, '..','..','..','..',filename))
-    return fs.existsSync(fpath)
+export function fileExists(pathName) {
+    return fs.existsSync(pathName)
 }
 

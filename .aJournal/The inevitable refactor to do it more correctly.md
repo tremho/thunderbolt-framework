@@ -203,10 +203,10 @@ and clear the gate only after establishing any menu models.
 
 ---
 ### Change in page data approach
-- create app function to `setPageData(obj)` and pass an object with values
+- create app function to `setPageData(pageId, obj)` and pass an object with values
 - this becomes attached to 'bound' as 'data'
   - consider making simply 'data'
-- set/update a value with `setPageData(prop, value)`. 
+- set/update a value with `setPageData(pageId, prop, value)`. 
   - this will update binding (whole data object)
   
 #### 3/24
@@ -220,6 +220,34 @@ and clear the gate only after establishing any menu models.
 
 - File API
   - error reporting protocol
+
+  - appFolder
+  
+  - Need an `updatePage(pageId)` call or setPageData does update
+    - Basically, pageComp.comBinder.applyComponentBindings for
+    the page-data.pageId bind directive (one time only)
+
+--------
+#### 3/25 My current dilemma
+###### not updating page on setPageData
+- After hacking at this in between manual labors on waterfall project,
+I am both sore and confused.  Combinding is happening and there is an update,
+but the new values are not reflected.  
+  
+----------
+#### 3/26 Dilemma solved
+- Since our pages are not unmounted/remounted, there is no reset to 
+pick up the initial props for any of the child components
+when the page updates after initial load-time mounting.  
+So I created a reset functionality and worked that into the solution.
+- It resets on each call to setPageData.  This gets a bit noisy, so
+we could separate it for a specific update, but it seems okay IRL 
+now, so let's put that off to a later decision.
+  
+-----
+
+
+
    - file exist
    - read/write text and ArrayBuffer
    - delete
@@ -232,6 +260,8 @@ and clear the gate only after establishing any menu models.
    - read directory
 - Back-Side API additions
 - Custom Components
+
+- Explore the idea of replacing `bound` with `state`
 
 - The whole Nativescript export and build enchilada
 

@@ -50,7 +50,7 @@
         onBeforeMount (props, state) {
           this.bound = new Object()
           cm = newCommon(this)
-          console.log(this.root.tagName, 'onBeforeMount', props, state, this.bound)
+          // console.log(this.root.tagName, 'onBeforeMount', props, state, this.bound)
           // get the app (model) toolbar buttons and indicators
           try {
             state.tools = cm.getApp().model.getAtPath('toolbar.' + props.toolbarId)
@@ -60,21 +60,21 @@
           }
         },
         onMounted (props, state) {
-          console.log(this.root.tagName, 'onMounted', props, state, this.bound)
+          // console.log(this.root.tagName, 'onMounted', props, state, this.bound)
           cm.bindComponent()
         },
         onBeforeUpdate (props, state) {
-          console.log(this.root.tagName, 'onBeforeUpdate', props, state, this.bound)
+          // console.log(this.root.tagName, 'onBeforeUpdate', props, state, this.bound)
         },
         onUpdated (props, state) {
-          console.log(this.root.tagName, 'onUpdated', props, state, this.bound)
+          // console.log(this.root.tagName, 'onUpdated', props, state, this.bound)
         },
         onBeforeUnmount (props, state) {
-          console.log(this.root.tagName, 'onBeforeUnmount', props, state, this.bound)
+          // console.log(this.root.tagName, 'onBeforeUnmount', props, state, this.bound)
           this.bound = {}
         },
         onUnmounted (props, state) {
-          console.log(this.root.tagName, 'onUnmounted', props, state, this.bound)
+          // console.log(this.root.tagName, 'onUnmounted', props, state, this.bound)
         }
       }
     </script>

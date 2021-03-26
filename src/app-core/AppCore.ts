@@ -307,26 +307,28 @@ export class AppCore {
      */
     public navigateToPage(pageId:string, context?:object, skipHistory?:boolean) {
 
+        if(!pageId) return;
+
         // set the page in the model.  For Riot, this forces the page to change on update
         // for mobile, we need to do that through native navigation, but we still want the model to be the same
         // these next two lines is what actually triggers the display of the page
         // so let's do it async
-        console.log('$$$$$$$$$$ navigate to page')
-        // setTimeout(() => {
-            this.model.setAtPath('navigation.context', context || {})
-            this.model.setAtPath('navigation.pageId', pageId || '', true)
+        let prevActivityId = this.currentActivity && this.currentActivity.activityId
+        if(prevActivityId === pageId) skipHistory = true;
+        console.log('$$$$$$$$$$ navigate to page '+pageId)
+        this.model.setAtPath('navigation.context', context || {})
+        this.model.setAtPath('navigation.pageId', pageId, true)
 
-            // note that this isn't used on the mobile side, but we record it anyway.
-            // this may be useful later if we have any history-related functionality in common.
-            let curActivityId = this.currentActivity && this.currentActivity.activityId
-            let curContext = this.currentActivity && this.currentActivity.context
-            if(!skipHistory) {
-                this.history.push({
-                    pageId: curActivityId,
-                    context: curContext
-                })
-            }
-        // })
+        // note that this isn't used on the mobile side, but we record it anyway.
+        // this may be useful later if we have any history-related functionality in common.
+        let curActivityId = this.currentActivity && this.currentActivity.activityId
+        let curContext = this.currentActivity && this.currentActivity.context
+        if(!skipHistory) {
+            this.history.push({
+                pageId: curActivityId,
+                context: curContext
+            })
+        }
 
         if(check.mobile) {
             let pageref = '~/pages/' + pageId
@@ -345,12 +347,20 @@ export class AppCore {
 
         } else {
             const pageComponent = findPageComponent(pageId)
-
+            if(!pageComponent) {
+                throw Error('No page component for '+ pageId)
+            }
             const activity = pageComponent.activity;
+            if(!activity) {
+                throw Error('No exported activity for '+ pageId)
+            }
             activity.context = context;
+            console.log('$$$$ Starting page', pageId)
             this.startPageLogic(pageId, activity, context)
-        }
+            this.model.setAtPath('navigation.pageId', '', true)
+            this.model.setAtPath('navigation.pageId', pageId || '', true)
 
+        }
 
     }
 
@@ -361,26 +371,58 @@ export class AppCore {
      * 1: Call with a single object argument following the page name to set all the properties of the 'data' object.
      * 2: Call with the property name, value to set an individual property of the page data object
      *
-     * @param pageName
+     * @param pageName - may pass with or without the '-page' suffix
      * @param item
      * @param value
      */
     public setPageData(pageName:string, item:object | string, value?:any) {
+        let fullPageName, pageId
+        if(pageName.substring(pageName.length -5) === '-page') {
+            fullPageName = pageName
+            pageId = pageName.substring(0, pageName.length - 5)
+        } else {
+            pageId = pageName
+            fullPageName = pageName + '-page'
+        }
+
         let data
         try {
-            data = this.model.getAtPath('page-data.' + pageName) || {}
+            data = this.model.getAtPath('page-data.' + fullPageName) || {}
         } catch(e) {
             const pgs:any = {}
             pgs[pageName] = {}
             const pages = this.model.addSection('page-data', pgs)
         }
         if(typeof item === 'object') {
-            this.model.setAtPath('page-data.'+pageName, item)
+            this.model.setAtPath('page-data.'+fullPageName, item)
         } else {
             data[item] = value
-            this.model.setAtPath('page-data.'+pageName, data )
+            this.model.setAtPath('page-data.'+fullPageName, data )
         }
+
+        let curActivityId = this.currentActivity && this.currentActivity.activityId
+        console.log('set page data for activity', curActivityId)
+
+        const pageComp = curActivityId && findPageComponent(curActivityId)
+        if(pageComp && pageComp.comBinder) {
+            pageComp.comBinder.applyComponentBindings(pageComp, 'page-data.' + fullPageName, (component, name, value, updateAlways) => {
+                // Handle the update to the component itself
+                console.log('updating page')
+                if (check.riot) {
+                    try {
+                        component.bound.data = value
+                        component.update()
+                    } catch (e) {
+                    }
+                } else {
+                    component.bound.set(name, value)
+                }
+            })
+            pageComp.reset()
+        }
+
     }
+
 
     /**
      * Returns the data object for the named page, if one exists
@@ -519,6 +561,7 @@ function getComponent(el) {
 }
 function findPageComponent(pageId) {
     const tag = pageId+'-page'
+    console.log('finding page with tag',tag)
     const el = document.getElementById('root')
     const appComp = getComponent(el)
     const pageCompEl = appComp.$$(tag)[0]

@@ -37,7 +37,7 @@
 
         },
         onMounted(props, state) {
-          console.log(this.root.tagName, 'onBeforeMount', props, state)
+          // console.log(this.root.tagName, 'onBeforeMount', props, state)
           let div = this.$('div')
           // apply tooltip handling
           div.setAttribute('title', props.tooltip || props.label)
@@ -67,7 +67,7 @@
           })
         },
         onBeforeUpdate(props, state) {
-          console.log(this.root.tagName, 'onBeforeUpdate', props, state)
+          // console.log(this.root.tagName, 'onBeforeUpdate', props, state)
           let div = this.$('div')
           // update dom attributes to match state
           div.dataset.state = state.state

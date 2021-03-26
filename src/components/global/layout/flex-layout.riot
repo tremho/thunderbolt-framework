@@ -14,7 +14,7 @@
           cm = newCommon(this)
         },
         onMounted(props, state) {
-          console.log(this.root.tagName)
+          // console.log(this.root.tagName)
           let div = this.$('DIV')
           cm.setCommonProps(div, props)
           div.style.flexFlow = (props.orientation==='horizontal' ? 'row' : 'column') + (props.wrap ? ' wrap' : ' nowrap')

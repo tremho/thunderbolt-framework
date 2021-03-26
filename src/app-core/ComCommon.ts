@@ -34,7 +34,7 @@ if(check.mobile) {
 export class ComCommon extends NotCommon{
     private readonly fits:string[]
     private fitNum:number
-    private readonly comBinder:ComBinder
+    private comBinder:ComBinder
     private readonly _app:AppCore
     private readonly _model:AppModel
 
@@ -450,6 +450,10 @@ export class ComCommon extends NotCommon{
                 }
             })
         }
+    }
+
+    getComBinder() {
+        return this.comBinder
     }
 
     /**
