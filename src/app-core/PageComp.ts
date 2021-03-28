@@ -21,7 +21,7 @@ export default {
         // console.log(this.root.tagName, 'onBeforeUpdate', props, state)
         this.bound.data = cm.getApp().getPageData(this.root.tagName.toLowerCase())
         if(this.root.tagName.toLowerCase() === 'file-test-page') {
-            console.log('app path at page level = ', this.bound.data.appPath)
+            // console.log('app path at page level = ', this.bound.data.appPath)
         }
     },
     onUpdated(props, state) {

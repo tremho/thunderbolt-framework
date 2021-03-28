@@ -219,6 +219,9 @@ and clear the gate only after establishing any menu models.
 - Remote API errors: rejection forwarding
 
 - File API
+  - BinaryAPI
+      - ArrayBuffer to/from binary string
+      - base-64
   - error reporting protocol
 
   - appFolder

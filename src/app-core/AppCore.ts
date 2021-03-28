@@ -401,13 +401,12 @@ export class AppCore {
         }
 
         let curActivityId = this.currentActivity && this.currentActivity.activityId
-        console.log('set page data for activity', curActivityId)
 
         const pageComp = curActivityId && findPageComponent(curActivityId)
         if(pageComp && pageComp.comBinder) {
             pageComp.comBinder.applyComponentBindings(pageComp, 'page-data.' + fullPageName, (component, name, value, updateAlways) => {
                 // Handle the update to the component itself
-                console.log('updating page')
+                // console.log('updating page')
                 if (check.riot) {
                     try {
                         component.bound.data = value
@@ -561,7 +560,7 @@ function getComponent(el) {
 }
 function findPageComponent(pageId) {
     const tag = pageId+'-page'
-    console.log('finding page with tag',tag)
+    // console.log('finding page with tag',tag)
     const el = document.getElementById('root')
     const appComp = getComponent(el)
     const pageCompEl = appComp.$$(tag)[0]
