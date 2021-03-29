@@ -248,9 +248,7 @@ we could separate it for a specific update, but it seems okay IRL
 now, so let's put that off to a later decision.
   
 -----
-
-
-
+###### √ 3/28
    - file exist
    - read/write text and ArrayBuffer
    - delete
@@ -261,6 +259,12 @@ now, so let's put that off to a later decision.
    - mkdir / -p
    - rmdir / -fr
    - read directory
+
+---------
+ - √ Path utilities
+   - tests
+  
+
 - Back-Side API additions
 - Custom Components
 

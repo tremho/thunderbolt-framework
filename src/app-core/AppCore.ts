@@ -1,6 +1,5 @@
 
 import {environment, check} from './EnvCheck'
-
 import Log from './Log'
 
 import {AppModel} from "./AppModel";
@@ -8,6 +7,7 @@ import {AppModel} from "./AppModel";
 import {setupMenu} from "../application/MenuDef"
 import {MenuApi} from "../application/MenuApi";
 import * as Imr from './InfoMessageRecorder'
+import {PathUtils, getRemoteSetters} from '../application/PathUtils'
 
 let StringParser, riot, ComBinder
 let getInfoMessageRecorder, InfoMessageRecorder
@@ -81,6 +81,7 @@ export class AppCore {
     private activeMenu:any
     private currentActivity:any = null
     private history:HistoryRecord[] = []
+    private _pathUtils: PathUtils
     private menuHandlers:any = {}
     private pageMount:any // used only with riot
     // the gate items below are used only in the mobile version
@@ -156,6 +157,17 @@ export class AppCore {
                 })
                 imrSingleton.subscribe(msgArray => {
                     this.model.setAtPath('infoMessage.messages', msgArray)
+                })
+                mainApi.getUserAndPathInfo().then(info => {
+                    const pathSetters = getRemoteSetters()
+                    pathSetters.setCurrentWorkingDirectory(info.cwd)
+                    let jp = this.Path.join(info.cwd, '..')
+                    console.log('$$$$$$$$ userAndPath DB:', jp)
+                    pathSetters.setAppPath(this.Path.normalize(this.Path.join(info.cwd, '..')))
+                    pathSetters.setHomeDirectory(info.home)
+                    const env = this.model.getAtPath('environment')
+                    const plat = env.platform.name === 'win32' ? 'win32' : 'posix'
+                    pathSetters.setPlatform(plat)
                 })
             })
         }
@@ -507,25 +519,14 @@ export class AppCore {
             return null;
         }
     }
-
-    // ----------------- File API access --------------------------
-    // todo: Put into separate API space
-
-    fileExists(filePath) {
-        if(!check.mobile) {
-            return mainApi.fileExists(filePath)
-        } else {
-            return false
+    // ------- access to PathUtils
+    get Path() {
+        if(!this._pathUtils) {
+            this._pathUtils = new PathUtils()
         }
+        return this._pathUtils
     }
 
-    readFileText(filePath) {
-        if(!check.mobile) {
-            return mainApi.readFileText(filePath)
-        } else {
-            throw Error("File APIs not implemented for mobile yet")
-        }
-    }
     // ------- Extension for indicators / tools
     createExtensionType(name:string) {
         const EType = extensionTypes[name]

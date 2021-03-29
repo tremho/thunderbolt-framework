@@ -1,7 +1,7 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
-import {arrayBufferToString, stringToArrayBuffer} from "./BinaryUtils";
+import * as os from 'os'
 
 function PathNotFound(path:string) {
     class PathNotFound extends Error {
@@ -130,4 +130,22 @@ export function readFolder(pathName:string):FileDetails[] {
         details.push(det)
     })
     return details
+}
+
+class UserPathInfo {
+    home:string
+    cwd:string
+    userName:string
+    uid:Number
+    gid:Number
+}
+export function getUserAndPathInfo(): UserPathInfo {
+    const userInfo = os.userInfo()
+    const out = new UserPathInfo()
+    out.home = userInfo.homedir
+    out.cwd =  process.cwd()
+    out.userName = userInfo.username
+    out.uid = userInfo.uid
+    out.gid = userInfo.gid
+    return out
 }
