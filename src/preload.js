@@ -1,6 +1,7 @@
 
 // All of the Node.js APIs are available in the preload process.
 // It has the same sandbox as a Chrome extension.
+
 window.addEventListener('DOMContentLoaded', () => {
   const replaceText = (selector, text) => {
     const element = document.getElementById(selector)
@@ -21,6 +22,7 @@ const {
 
 const {AppGateway} = require('./AppGateway')
 
+const extResponders = {}
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -116,4 +118,28 @@ api.removeMessageListener = (msgName, id) => {
   return false;
 }
 
+// BackExtensions listener
+ipcRenderer.on('extApi', (event, data) => {
+  const {id, response, error} = data
+  // console.log(`in BackExtensions response handler for id ${id}`)
+  const respIn = extResponders[id]
+  if(respIn) {
+    // console.log(respIn)
+    if (error) {
+      respIn.error(error)
+    } else {
+      respIn.resolve(response)
+    }
+  }
+})
+
+const extAccess = {
+  getExtResponders() { return extResponders},
+  addResponder(id, resp) { extResponders[id] = resp},
+  getResponder(id) { return extResponders[id] },
+  removeResponder(id) { delete extResponders[id]}
+}
+
 contextBridge.exposeInMainWorld("api", api);
+contextBridge.exposeInMainWorld('ipcRenderer', ipcRenderer)
+contextBridge.exposeInMainWorld('extAccess', extAccess)

@@ -2,7 +2,6 @@
 import * as fileApi from "./FileAPI"
 import * as menuApi from "./DesktopMenu";
 
-
 const exportedFunctions = {
     messageInit: () => { /*console.log('message init stub hit')*/ },
 
@@ -16,10 +15,10 @@ const exportedFunctions = {
  */
 export class AppGateway {
 
-    private ipcMain:any;
+    private ipcMain: any;
     private static ipcMessageSender = null;
 
-    constructor(ipcMainIn:any) {
+    constructor(ipcMainIn: any) {
         this.ipcMain = ipcMainIn;
         this.attach();
     }
@@ -42,7 +41,7 @@ export class AppGateway {
                 } catch (e) {
                     error = e;
                 }
-                if(fname === 'messageInit') {
+                if (fname === 'messageInit') {
                     AppGateway.ipcMessageSender = event.sender;
                     // console.log('set ipcMessageSender to ', AppGateway.ipcMessageSender)
                     // console.log(fname, id)
@@ -51,9 +50,10 @@ export class AppGateway {
             })
         })
     }
-    public static sendMessage(name:string, data:any) {
+
+    public static sendMessage(name: string, data: any) {
         // console.log('sending ipc message', name, data)
-        if(AppGateway.ipcMessageSender) {
+        if (AppGateway.ipcMessageSender) {
             AppGateway.ipcMessageSender.send('message', {name, data})
         } else {
             // console.error('no ipcMessageSender')
@@ -62,5 +62,6 @@ export class AppGateway {
             }, 1000)
         }
     }
+
 }
 

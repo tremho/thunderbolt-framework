@@ -149,8 +149,8 @@ export class AppModel {
     public bind( component:any, section:string, prop:string, onChange:any, type?:string) {
         bind(component, this.model, section, prop, onChange, type)
 
-        const value = this.getAtPath(section+'.'+prop)
-        announce(section, prop, value)
+        // const value = this.getAtPath(section+'.'+prop)
+        // announce(section, prop, value)
     }
 
     /**

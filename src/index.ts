@@ -9,6 +9,7 @@ import * as electron from 'electron'
 import * as path from 'path'
 
 import {AppGateway} from './AppGateway'
+import {registerExtensionModule} from "./BackExtensions";
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'YES'
 
@@ -87,6 +88,10 @@ export class FrameworkBackContext {
         mainWindow.webContents.openDevTools()
 
         this.electronWindow = mainWindow
+    }
+
+    registerExtensionModule(name, module) {
+        registerExtensionModule(name, module)
     }
 
 }

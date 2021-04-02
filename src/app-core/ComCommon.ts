@@ -41,6 +41,7 @@ export class ComCommon extends NotCommon{
     constructor(arg)
     {
         super(arg)
+        arg.b = this.evalBinding
         this.fits = []
         this.fitNum = 0;
         this._app = this.getApp()
@@ -96,6 +97,16 @@ export class ComCommon extends NotCommon{
         return this.getApp().componentIsReady()
     }
 
+    public evalBinding(name) {
+        const segs = name.split('.')
+        let v = this.bound || {}
+        let seg
+        while(seg = segs.shift()) {
+            v = v[seg]
+            if(typeof v !== 'object') break
+        }
+        return v
+    }
     /**
      * gets the Riot Component instance that the given DOM element belongs to
      *

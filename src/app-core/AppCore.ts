@@ -8,6 +8,7 @@ import {setupMenu} from "../application/MenuDef"
 import {MenuApi} from "../application/MenuApi";
 import * as Imr from './InfoMessageRecorder'
 import {PathUtils, getRemoteSetters} from '../application/PathUtils'
+import {callExtensionApi} from "./ BackExtensionsFront";
 
 let StringParser, riot, ComBinder
 let getInfoMessageRecorder, InfoMessageRecorder
@@ -171,7 +172,7 @@ export class AppCore {
                 })
             })
         }
-        this.model.addSection('navigation', {pageId: '', context:{}})
+        this.model.addSection('page', {navInfo: {pageId: '', context: {}}})
 
 
         // Set environment items
@@ -323,22 +324,22 @@ export class AppCore {
 
         // set the page in the model.  For Riot, this forces the page to change on update
         // for mobile, we need to do that through native navigation, but we still want the model to be the same
-        // these next two lines is what actually triggers the display of the page
-        // so let's do it async
-        let prevActivityId = this.currentActivity && this.currentActivity.activityId
-        if(prevActivityId === pageId) skipHistory = true;
         console.log('$$$$$$$$$$ navigate to page '+pageId)
-        this.model.setAtPath('navigation.context', context || {})
-        this.model.setAtPath('navigation.pageId', pageId, true)
-
+        const navInfo = this.model.getAtPath('page.navInfo')
+        let prevPageId = navInfo.pageId
+        let prevContext = navInfo.context
+        navInfo.timestamp = Date.now()
+        navInfo.pageId = pageId
+        navInfo.context = context || {}
+        // this switches the page at this point, or at least updates it
+        this.model.setAtPath('page.navInfo', navInfo)
+        if(prevPageId === pageId && prevContext === context) skipHistory = true;
         // note that this isn't used on the mobile side, but we record it anyway.
         // this may be useful later if we have any history-related functionality in common.
-        let curActivityId = this.currentActivity && this.currentActivity.activityId
-        let curContext = this.currentActivity && this.currentActivity.context
         if(!skipHistory) {
             this.history.push({
-                pageId: curActivityId,
-                context: curContext
+                pageId: prevPageId,
+                context: prevContext
             })
         }
 
@@ -369,8 +370,6 @@ export class AppCore {
             activity.context = context;
             console.log('$$$$ Starting page', pageId)
             this.startPageLogic(pageId, activity, context)
-            this.model.setAtPath('navigation.pageId', '', true)
-            this.model.setAtPath('navigation.pageId', pageId || '', true)
 
         }
 
@@ -535,6 +534,10 @@ export class AppCore {
         }
     }
 
+    // extensions
+    callExtension(moduleName, functionName, ...args) {
+        return callExtensionApi(moduleName, functionName, args)
+    }
 
 }
 

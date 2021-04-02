@@ -5,10 +5,10 @@ let cm;
 export default {
     onBeforeMount(props, state) {
         // console.log(this.root.tagName, 'onBeforeMount', props, state)
-        const addBind = Object.assign({bind: 'navigation.context'}, props)
-        Object.defineProperty(this,'props', {
-            value: addBind
-        })
+        // const addBind = Object.assign({bind: 'navigation.context'}, props)
+        // Object.defineProperty(this,'props', {
+        //     value: addBind
+        // })
         cm = newCommon(this)
         this.comBinder = cm.getComBinder()
         this.reset()

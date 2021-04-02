@@ -19,7 +19,7 @@ export function makePageList() {
 const appRiotTemplate =
     `
 <app>
-    <div bind="navigation.pageId">
+    <div bind="!page.navInfo">
 $$$PageList$$$
     </div>
     <style>
@@ -28,12 +28,12 @@ $$$PageList$$$
       import {newCommon} from 'Framework/app-core/ComCommon'
       let cm;
       export default {
-        state: {},
-        bound: {},
         onMounted(props, state) {
           cm = newCommon(this)
           cm.bindComponent()
-          console.log('App Page Context Mounted', this.bound)
+        },
+        onBeforeUpdate(props, state) {
+          console.log('App Page Context Updating', this.b('navInfo.pageId'))              
         }
       }
     </script>
@@ -68,7 +68,7 @@ function enumerateRiotPages() {
 function createAppRiot(pageList = []) {
     let pagegen = ''
     pageList.forEach(pageId => {
-        pagegen += `        <${pageId}-page if="{bound.pageId === '${pageId}'}"/>\n`
+        pagegen += `        <${pageId}-page if="{((this.bound||{}).navInfo||{}).pageId === '${pageId}'}"/>\n`
     })
     pagegen = pagegen.substring(0, pagegen.length-1) // take off the last \n
     let src = appRiotTemplate.replace('$$$PageList$$$', pagegen)

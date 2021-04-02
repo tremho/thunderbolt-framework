@@ -266,6 +266,93 @@ now, so let's put that off to a later decision.
   
 
 - Back-Side API additions
+
+  - Was going to use require.context to bring in files from the user side,
+  but the irony here is that we don't webpack the back end, so that obviously 
+  won't pan out.
+  - I don't think we really have a build-time option because I'm only
+  building tb for dev purposes anyway, not for real.
+  - So for runtime:
+    - tbAppBack imports modules it wants to expose and calls framework to do so
+    - ◊ Enumerate module and register functions with extAPI
+    - ◊ Attach to the ipc at both sides
+  
+###### Weird dance in preload bootstrapping...
+- I now have a 'gatherExtensions' call in AppGateway that preload
+can call.  This occurs ~400ms after tbAppBack.appStart is called,
+which implies we have time to add methods to 'exportedFunctions'.
+Isn't that what we did before, though? Why didn't it work?
+###### Elementary my dear, stupid Watson...
+- Preload loads AppGateway in one process and appBack loads it in another.
+So setting the properties of 'exportedFunctions' is limited to whatever
+  is brought in at load time; the independent runtimes are oblivious to
+  one another.
+  
+- What normally happens:
+  - both sides see the same names/functions in exportedFunctions, although
+  we don't use the functions on the render side.
+  - The back side has wired these functions up to 'api'
+  - what if we exported our module as 'name'?
+    - problem here is getting the `contextBridge` out of preload
+    - but I don't think we have to.
+  -- let's create a BackExtensions module and let it import contextBridge
+      and do basically all the same wiring, but to the module by name
+      instead.
+      
+###### Grr. Reset again.
+  switch to a more direct message system.
+  ipcRenderer will send the message from front space into the back
+  ipcMain will listen to this and call the function
+  ipcMain will send the response to the front
+  ipcRenderer will listen for the response and bind it to the responder return
+  - So we have two modules
+    - BackExtensions
+      - runs in main (back) and handles the listeners and response sends
+    - BackExtensionFront (front, appCore)
+      - runs in renderer and sends message to back and awaits response
+  
+###### Still Grr
+- closer, but it turns out that ipcRenderer is not accessible to
+front-side code except in preload
+
+- But we should be able to separate out the static responder of BackExtensionsFront
+to become part of preload, and try sharing the ipcRender (messageSender) via contextBridge
+  
+- Really close now.  just not getting a response through for some reason.
+
+###### Okay... past that now
+ - Need to document, like so many other things, but it's working
+ - test function in next page successfully exchanges information
+with the back side. The test function is imported in a test module
+and registered in tbAppBack.   
+  
+-------------
+
+### Another refactor!
+
+Yes, it's that time again.
+
+This time, we need to make the page navigation switching atomic.
+Currently, we have pageId and context as different props on the
+navigation model object, and since each post an update, we get a
+race and the second thing set is often not seen, which 
+causes us some issues.
+
+-  [X] change navigation.pageId and navigation.context to page.navInfo
+where pageId and context are object properties of navInfo
+    - Check behavior of PageComp and forced binding to context
+-  [X] review the model and consolidate.    
+
+-  [X] also created `b` accessor to simplify bind access. use instead of `bound`
+
+----
+----
+
+
+
+
+- Replace 'appStart' with 'pageStart' in pages
+
 - Custom Components
 
 - Explore the idea of replacing `bound` with `state`
