@@ -415,9 +415,11 @@ export class ComCommon extends NotCommon{
             if(!component.bound) component.bound = {}
         }
 
-        const taglc = component.root.tagName.toLowerCase()
-        if(taglc.substring(taglc.length-5) === '-page') {
-            component.bound.data = this.model.getAtPath('page-data.' + taglc)
+        if(!check.mobile) {
+            const taglc = component.root.tagName.toLowerCase()
+            if (taglc.substring(taglc.length - 5) === '-page') {
+                component.bound.data = this.model.getAtPath('page-data.' + taglc)
+            }
         }
 
         let scopeComp = component
@@ -436,7 +438,7 @@ export class ComCommon extends NotCommon{
             directive = directives[i]
             // create a property in the local observable the markup implementation looks at
             let {section, prop, alias} = this.comBinder.deconstructBindStatement(directive)
-            let startValue = this.model.getAtPath(section + '.' + prop)
+            let startValue = (check.mobile && component.get(alias)) || this.model.getAtPath(section + '.' + prop)
             const name = alias || prop;
             if (check.mobile) {
                 component.bindingContext = component.bound

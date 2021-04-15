@@ -95,5 +95,72 @@ implementation gore underneath.
 #### Go back to [inevitable refactor part II]('./the inevitable refactor to to it more correctly.md')
 
 
+--------
+--------
+Lifecycle flow deconstructed
+--------
+--------
+--------
+###App starts up from launcher
+
+`tbAppBack.ts` is the start. It brings in the framework
+from node_modules.
+For desktop, this is 'thunderbolt-framework'
+for mobile, this is 'thunderbolt-mobile'
+'Framework' alias points to same exports in respective module suites.
+This likely means modifying the NS webpack config.
+
+
+tbAppBack brings in FrameworkBackContext as a module
+and then creates a local implementation of TBBackApp
+and sends this to framework `registerApp`.
+
+The framework host prepares itself and then calls 
+'appStart' in the tbAppBack context.
+
+desktop does this after electron main reports on `whenReady`
+and then creates the window. 
+
+The desktop has more to do because of its split process nature.
+In the buildPack code, appMain registers the components and
+sets up the environment and app model.  It calls
+AppCore.setupUIElements (and thus tbFrontApp) in this process.
+ 
+for ns, tbBackApp is wrapped to become app.ts in the Nativescript
+project, where it does the same callback protocol and then
+calls Application.run, which references app-root, which redirects
+to main-page.
+
+AppCore.setupUIElements should be called just before running, or
+put it into onLoaded for app-root.ts.  This should look much like
+the desktop counterpart.
+
+setupUIElements calls our tbFrontApp.appStart method.
+
+then we navigate to the first page: appCore.navigateToPage('main')
+
+###### Implementation tasks
+- [X] create a 'thunderbolt-mobile' space and install it as 
+part of ns setup (via template's package.json)
+  - √ do a make mobile script
+- [ ] do the FrameworkBackContext stuff as defined.
+
+---
+###### issues:
+- √ tsc errors - check tsconfig.json for thunderbolt-mobile
+- current ns/tbTest builds a good hello-world.
+- √ now, we need to hook in our appBack
+- ◊ main launch should call tbFront, (unless we thing frameworkContext should... nah)  
+- then components
+- then pages
+- once we get it more-or-less working, migrate to template and
+rerun for sanity to date.
+  
+_The thing is, work on the export poc (the other tbTest project), and make it sing. then
+migrate back_.
+
+
+
+
 
 

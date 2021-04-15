@@ -523,11 +523,13 @@ export function setupMenu(app:AppCore, menuData?:string) {
     appTools = []
     appIndicators = []
     smstack = []
-    app.MainApi.resetMenu()
-    if(menuData) {
-        // processMenuDef(app, menuData)
+    if(app.MainApi && app.MainApi.resetMenu) {
+        // a check to see if we are on desktop
+        app.MainApi.resetMenu()
         return readMenuDef(app, menuData)
+    } else {
+        // mobile
+        return Promise.resolve(processMenuDef(app, menuData))
+        // return Promise.resolve()
     }
-    // return readMenuDef(app)
-    return Promise.resolve()
 }

@@ -141,6 +141,7 @@ function doWebpackBuild() {
                     Project: srcDir,
                     Generated: genDir,
                     Assets: path.join(srcDir, 'assets'),
+                    Components: path.join(srcDir, 'components'),
                     Pages: appPages,
                     Framework: tbBuildSrc,
                     BuildPack: packPath,
@@ -205,6 +206,7 @@ function doWebpackBuild() {
 function mainAndExec() {
     try {
         tsc.compile({
+                target: 'es5',
                 lib: 'es2015,dom',
                 outdir: 'build'
             }, [`${backMain}`],

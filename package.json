@@ -2,7 +2,9 @@
   "name": "thunderbolt-framework",
   "version": "1.0.0",
   "description": "A framework for desktop and mobile development with Node. Based on Electron, Riot, and Nativescript.",
-  "main": "build/src/index.js",
+  "main": "build/index.js",
+  "mobile": "build/mobile.js",
+  "application": "build/application.js",
   "bin": {
     "tbx": "build/tbx/tbx.js"
   },
@@ -12,6 +14,7 @@
     "awesome-typescript-loader": "^5.2.1",
     "base-64": "^1.0.0",
     "electron": "^10.4.0",
+    "fs-extra": "^9.1.0",
     "gen-format": "file:../gen-format",
     "gen-logger": "file:../gen-logger",
     "node-typescript-compiler": "^2.2.1",

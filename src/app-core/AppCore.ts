@@ -6,25 +6,34 @@ import {AppModel} from "./AppModel";
 
 import {setupMenu} from "../application/MenuDef"
 import {MenuApi} from "../application/MenuApi";
-import * as Imr from './InfoMessageRecorder'
-import {PathUtils, getRemoteSetters} from '../application/PathUtils'
-import {callExtensionApi} from "./ BackExtensionsFront";
 
-let StringParser, riot, ComBinder
+import {PathUtils, getRemoteSetters} from '../application/PathUtils'
+
+import {StringParser} from '../general/StringParser'
+
+// TODO: make a mobile equivalent
+// import {callExtensionApi} from "./ BackExtensionsFront";
+
+let nsfs
+let Imr
+if(check.mobile) {
+    try {
+        nsfs = require('@nativescript/core/file-system')
+    } catch (e) {
+    }
+} else {
+    Imr = require('./InfoMessageRecorder')
+}
+
+let riot, ComBinder
 let getInfoMessageRecorder, InfoMessageRecorder
-let coreApp
 if(!check.mobile) {
     try {
         getInfoMessageRecorder = Imr.getInfoMessageRecorder;
         InfoMessageRecorder = Imr.InfoMessageRecorder
         riot = require('riot')
         ComBinder = require('./ComBinder').ComBinder
-        StringParser = require('../general/StringParser')
     } catch(e) {}
-
-    try {
-        coreApp = require('../core/app/main')
-    }catch(e) {}
 }
 
 // TODO: dynamically build this mapping with a config or an enumerating tool.extension
@@ -69,7 +78,8 @@ export function getTheApp() {
 }
 
 let componentGateCleared
-let keyListenerBind;
+let keyListenerBind
+let reservedContext // mobile only, used for hand off of context between split load
 
 /**
  *  Core object of the application.  Contains the app model and gateway functions for actions, which are
@@ -171,6 +181,9 @@ export class AppCore {
                     pathSetters.setPlatform(plat)
                 })
             })
+        } else {
+            // todo: use path setters to set our runtime specifics for mobile
+
         }
         this.model.addSection('page', {navInfo: {pageId: '', context: {}}})
 
@@ -191,34 +204,28 @@ export class AppCore {
                 this.modelGateResolver()
             })
         }
-
-        // if(coreApp) coreApp.setupModel(this.model)
-        // Set up our app display
-        // // TODO: remove when done with initial setup testing
-        // this.model.addSection('testValues', {mainLabel: 'Hello, World! This is ThunderBolt!'})
-
-        // console.log('<<<setupUIElements<<<')
-
-        // console.log('model gate cleared')
         return this.waitReady()
 
     }
 
     setupMenu(menuPath:string) {
-        const menuData = require('Assets/'+( menuPath ) ).replace('/front', '/front/')
+        let menuData
+        if(check.mobile) {
+            let menuDataPath = nsfs.path.join(nsfs.knownFolders.currentApp().path, 'assets', menuPath)
+            let file = nsfs.File.fromPath(menuDataPath)
+            menuData = file.readTextSync(err=> {
+                console.error('unable to read menu data from '+menuDataPath)
+                menuData = ''
+            })
+        } else {
+            try {
+                menuData = require('Assets/' + (menuPath)).replace('/front', '/front/')
+            } catch(e) {}
+        }
 
         console.log('menu data', menuData)
         return setupMenu(this, menuData)
     }
-
-    // public setupDesktopMenu(desktopMenu) {
-    //     for(let i=0; i<desktopMenu.length; i++) {
-    //         mainApi.addMenuItem(null, desktopMenu[i])
-    //     }
-    //     mainApi.realiseMenu()
-    //
-    // }
-
 
     public setActiveMenu(menuComp) {
         this.activeMenu = menuComp
@@ -344,7 +351,7 @@ export class AppCore {
         }
 
         if(check.mobile) {
-            let pageref = '~/pages/' + pageId
+            let pageref = '~/pages/' + pageId + '-page'
 
             const navigationEntry = {
                 moduleName: pageref,
@@ -373,6 +380,17 @@ export class AppCore {
 
         }
 
+    }
+
+    /**
+     * Called by mobile page-launch wrapper (onNavigatedTo) to invoke the page logic (activity)
+     * This does basically what the navigateToPage code does in the second part for desktop
+     * @param activity
+     */
+    launchActivity(pageId:string, activity:any) {
+        console.log('$$$$ Starting page', pageId)
+        this.startPageLogic(pageId, activity, reservedContext)
+        reservedContext = null
     }
 
     /**
@@ -464,7 +482,7 @@ export class AppCore {
             this.attachPageKeyListener()
         }
 
-        activity.appStart(this, context)
+        activity.pageStart(this, context)
     }
 
     public navigateBack() {
@@ -536,7 +554,8 @@ export class AppCore {
 
     // extensions
     callExtension(moduleName, functionName, ...args) {
-        return callExtensionApi(moduleName, functionName, args)
+        // TODO: need mobile equivalent
+        // return callExtensionApi(moduleName, functionName, args)
     }
 
 }

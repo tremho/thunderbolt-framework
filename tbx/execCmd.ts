@@ -1,25 +1,30 @@
 
-import {spawn} from 'child_process'
+import {exec} from 'child_process'
 
-export function executeCommand(cmd, args, cwd, silent=false):Promise<any> {
+export function executeCommand(cmd, args, cwd = ''):Promise<any> {
+  const out = {
+    stdStr: '',
+    errStr: '',
+    retcode: 0
+  }
   return  new Promise(resolve => {
-    const proc = spawn(cmd, args, {cwd})
+    let cmdstr = cmd + ' ' + args.join(' ')
+    const proc = exec(cmdstr, {cwd})
     proc.stdout.on('data', data => {
-      if(silent) return
-      const str = data.toString().trim()
-      console.log(str)
+      out.stdStr += data.toString()
     })
     proc.stderr.on('data', data => {
-      if(silent) return
-      const str = data.toString().trim()
-      console.error(str)
+      out.errStr += data.toString()
     })
     proc.on('error', error => {
       console.error(error)
-      resolve(-1)
+      if(!out.errStr) out.errStr = error.message
+      out.retcode = -1
+      resolve(out)
     })
     proc.on('close', code => {
-      resolve(code)
+      out.retcode = code
+      resolve(out)
     })
   })
 }

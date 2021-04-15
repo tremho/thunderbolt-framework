@@ -1,5 +1,5 @@
 
-import {loadLoggerConfig, setLoggerConfig, getLogger} from 'gen-logger'
+// import {loadLoggerConfig, setLoggerConfig, getLogger} from 'gen-logger'
 const logConfig =
     {
         "categories": [
@@ -109,8 +109,17 @@ const logConfig =
 // loadLoggerConfig('/Users/sohmert/tbd/gen-logger/testConfig.json')
 // but can do this
 // logConfig is parsed JSON from import.
-setLoggerConfig(logConfig)
+// setLoggerConfig(logConfig)
 
-const Log = getLogger('Main')
+// const Log = getLogger('Main')
+
+const Log = {
+    debug(...a) {return console.log(...a)},
+    log(...a) {return console.log(...a)},
+    info(...a) {return console.log(...a)},
+    warn(...a) {return console.warn(...a)},
+    error(...a) {return console.error(...a)},
+    exception(...a) {return console.error(...a)}
+}
 
 export default Log

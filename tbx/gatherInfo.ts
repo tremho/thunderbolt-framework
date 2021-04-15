@@ -18,6 +18,7 @@ let tbxPath,  // path to the tbx script itself. This establishes where framework
     projName, // name of project from project package.json file
     projVersion, // version of project from project package.json file
     projDesc, // description of project from project package.json file
+    projId, // the appid reverse dot.com format identifier for app publication
     frontMain, // name of entry module for the app Renderer code, from project package.json file or default (tbAppFront.ts)
     backMain  // name of entry module for the app Back (node) process code, fom project package.json file or default (tbAppBack.ts)
 
@@ -90,6 +91,7 @@ function getPackageJSONInfo() {
     backMain = pkgJson.backMain || 'backMain.js'
     frontMain = pkgJson.frontMain || 'frontMain.js'
     projDesc = pkgJson.description || ''
+    projId = pkgJson.projId || ''
 
     // console.log('project name = ', projName)
     // console.log('version = ', projVersion)
@@ -116,6 +118,7 @@ export function gatherInfo() {
         projName, // name of project from project package.json file
         projVersion, // version of project from project package.json file
         projDesc, // description of project from project package.json file
+        projId, // the appid reverse dot.com format identifier for app publication
         frontMain, // name of entry module for the app Renderer code, from project package.json file or default (tbAppFront.ts)
         backMain  // name of entry module for the app Back (node) process code, fom project package.json file or default (tbAppBack.ts)
     }

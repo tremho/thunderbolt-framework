@@ -8,8 +8,8 @@ import * as electron from 'electron'
 
 import * as path from 'path'
 
-import {AppGateway} from './AppGateway'
-import {registerExtensionModule} from "./BackExtensions";
+import {AppGateway} from './src/AppGateway'
+// import {registerExtensionModule} from "./src/BackExtensions";
 
 process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'YES'
 
@@ -68,7 +68,7 @@ export class FrameworkBackContext {
                 nodeIntegration: false, // we handle all the node stuff back-side
                 contextIsolation: true, // gateway through window.api
                 enableRemoteModule: false,
-                preload: path.join(__dirname, 'preload.js')
+                preload: path.join(__dirname, 'src', 'preload.js')
             }
         })
 
@@ -90,9 +90,9 @@ export class FrameworkBackContext {
         this.electronWindow = mainWindow
     }
 
-    registerExtensionModule(name, module) {
-        registerExtensionModule(name, module)
-    }
+    // registerExtensionModule(name, module) {
+    //     registerExtensionModule(name, module)
+    // }
 
 }
 

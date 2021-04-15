@@ -349,16 +349,20 @@ where pageId and context are object properties of navInfo
 ----
 
 
+- √ Replace 'appStart' with 'pageStart' in pages
 
-
-- Replace 'appStart' with 'pageStart' in pages
-
-- Custom Components
+- √ Custom Components
+  - handle like we do 'Pages': a webpack alias accessed in register-global-components
+  
 
 - Explore the idea of replacing `bound` with `state`
 
-- The whole Nativescript export and build enchilada
-
+----
+### The whole Nativescript export and build enchilada
+  - start with export command and naming location; establishing that folder
+  - need to bring in the Bridge components: x-code core modules
+  - 
+----
 
 - Test and handle webpack errors (e.g. missing module w/o try/catch)
 - Verbosity options for build output (webpack stats)
