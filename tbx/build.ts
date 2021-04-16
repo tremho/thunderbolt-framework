@@ -5,6 +5,7 @@ import * as fs from "fs";
 import {gatherInfo} from './gatherInfo'
 import {createSMX} from './smx'
 import {makePageList} from "./mainPageList";
+import * as componentReader from './tbFiles/ComponentReader'
 import * as os from "os"
 import * as webpack from "webpack";
 import * as UglifyPlugin from "uglifyjs-webpack-plugin"
@@ -331,6 +332,11 @@ function compileScss() {
     }
 }
 
+function makeRiotComponents() {
+    const componentsDir = path.join(projPath, 'src', 'components')
+    componentReader.enumerateAndConvert(componentsDir, 'riot', componentsDir)
+}
+
 function summary() {
     console.log('')
     console.log(`${projName} ${projVersion}`)
@@ -360,6 +366,7 @@ export function doBuild() {
 
         generateBuildEnvironment()
         compileScss()
+        makeRiotComponents()
         makePageList()
         doWebpackBuild().then(() => {
             createSMX()

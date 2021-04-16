@@ -24,7 +24,8 @@
     "tslib": "^2.1.0",
     "typescript": "^3.9.9",
     "uglifyjs-webpack-plugin": "^2.2.0",
-    "webpack": "^5.24.4"
+    "webpack": "^5.24.4",
+    "xml-js": "^1.6.11"
   },
   "devDependencies": {
     "@types/node": "^14.14.33"
