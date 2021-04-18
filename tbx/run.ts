@@ -8,7 +8,7 @@ export function doRun() {
     let {projPath, projName} = gatherInfo()
     if(doCheckIsBuildNeeded(projPath, projName)) {
         console.log('build first...')
-        doBuild()
+        // doBuild()
     }
     console.log('running...')
     executeCommand(path.join(projPath, 'build', projName), [], path.join(projPath, 'build'))

@@ -97,6 +97,16 @@ export class ComCommon extends NotCommon{
         return this.getApp().componentIsReady()
     }
 
+    public addProperty(name, value) {
+        try {
+            let props = Object.assign({},this.riot.props || {})
+            Object.defineProperty(props, name, {value})
+            Object.defineProperty(this.riot, "props", {value: props})
+        } catch(e) {
+            console.error(e)
+        }
+    }
+
     public evalBinding(name) {
         const segs = name.split('.')
         let v = this.bound || {}

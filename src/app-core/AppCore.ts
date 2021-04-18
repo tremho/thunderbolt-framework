@@ -278,6 +278,20 @@ export class AppCore {
         }
     }
 
+    public callPageAction(name, ev) {
+        let comEvent = {
+            nativeEvent: ev,
+            target: ev.target,
+            type: ev.type
+        }
+        if(this.currentActivity) {
+            if(typeof this.currentActivity[name] === 'function') {
+                this.currentActivity[name](comEvent)
+            }
+
+        }
+    }
+
     /**
      * Register a global-scope handler for a menu or a tool action
      * or pass null instead of the handler function to clear it

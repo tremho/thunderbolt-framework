@@ -5,14 +5,8 @@ enumerate and read tbc/ tbcm files from 'components' directory into data ready f
 import * as fs from "fs"
 import * as path from 'path'
 import * as convert from 'xml-js'
-
-class ComponentInfo {
-    id:string
-    bind:string
-    layout:any
-    scss:string
-    methods:Map<string, string> = new Map<string, string>()
-}
+import {ComponentInfo} from "./ComponentInfo";
+import {writeRiotFile} from "./ComponentWriterRiot";
 
 enum ParsedState {
     none,
@@ -33,6 +27,7 @@ function readComponent(filepath:string): ComponentInfo {
     const info = new ComponentInfo()
     let state:ParsedState = ParsedState.none
     let layoutXml = ''
+    let bindDeclarations = ''
 
     try {
         const str = fs.readFileSync(filepath).toString()
@@ -68,7 +63,7 @@ function readComponent(filepath:string): ComponentInfo {
                         if (state === ParsedState.none) {
                             console.error('"#component expected as first statement')
                         } else {
-                            info.bind = value
+                            bindDeclarations = value
                             state = ParsedState.bind
                         }
                         break;
@@ -81,10 +76,13 @@ function readComponent(filepath:string): ComponentInfo {
                         break
                 }
             } else if(line.charAt(0) === '$') {
-                let en = line.indexOf(':', 1)
+                let en = line.indexOf('(', 1)
                 if (en !== -1) {
-                    let mtg = line.substring(0, en + 1)
+                    let mtg = line.substring(0, en).trim()
+                    let pe = line.indexOf(')', en)
+                    let pm = line.substring(en+1, pe)
                     let pos = str.indexOf(mtg)+mtg.length
+                    pos = str.indexOf('{', pos)
                     let blkend = str.indexOf('\n$', pos)
                     if (blkend === -1) blkend = str.indexOf('\n#', pos)
                     if (blkend === -1) blkend = str.indexOf('\nbeforeLayout', pos)
@@ -93,15 +91,19 @@ function readComponent(filepath:string): ComponentInfo {
                     if (blkend === -1) blkend = str.length
                     blkend = str.lastIndexOf('}', blkend)+1
                     let code = str.substring(pos, blkend).trim()
-                    let name = mtg.substring(1, mtg.length - 1)
+                    let name = mtg.substring(1, mtg.length)
                     info.methods[name] = code
+                    info.params[name] = pm
                     state = ParsedState.methods
                 }
             } else if(line.substring(0,12) === 'beforeLayout' || line.substring(0,11) === 'afterLayout') {
-                let en = line.indexOf(':', 1)
+                let en = line.indexOf('(', 1)
                 if (en !== -1) {
-                    let mtg = line.substring(0, en + 1)
+                    let mtg = line.substring(0, en).trim()
+                    let pe = line.indexOf(')', en)
+                    let pm = line.substring(en+1, pe)
                     let pos = str.indexOf(mtg)+mtg.length
+                    pos = str.indexOf('{', pos)
                     let blkend = str.indexOf('\n$', pos)
                     if (blkend === -1) blkend = str.indexOf('\n#', pos)
                     if (blkend === -1) blkend = str.indexOf('\nbeforeLayout', pos)
@@ -111,14 +113,18 @@ function readComponent(filepath:string): ComponentInfo {
                     blkend = str.lastIndexOf('}', blkend)+1
                     let code = str.substring(pos, blkend).trim()
                     let name = line.substring(0,12)
-                    if(name === 'afterLayout:') name = 'afterLayout' // lame, but effective
+                    if(line.substring(0, 11) === 'afterLayout') name = 'afterLayout'
                     info.methods[name] = code
+                    info.params[name] = pm
                     state = ParsedState.methods
                 }
             }
             else {
                 if(state === ParsedState.layout) {
                     layoutXml += line
+                }
+                else if(state === ParsedState.bind) {
+                    bindDeclarations += line
                 }
             }
         }
@@ -129,19 +135,51 @@ function readComponent(filepath:string): ComponentInfo {
         let style = str.substring(sn+1, sen).trim()
         // now parse the xml
         const xmlResult = convert.xml2js(layoutXml, {compact:true})
-        info.layout = xmlResult
+        info.layout = setupAction(xmlResult)
+        for(let i=0; i<actionMethods.length; i++) {
+            let am = actionMethods[i]
+            info.methods[am.name] = am.method
+            info.params[am.name] = 'ev'
+        }
+        info.bind = bindDeclarations
         info.scss = style
-
-        console.log ('parsed info', info)
-        // console.log('layout', layoutXml)
-        // console.log('layout convert', JSON.stringify(xmlResult, null, 2))
-        // console.log('scss', style)
 
     } catch(e) {
         console.error("Error", e)
     }
 
     return info
+}
+let actionMethods:any[] = []
+function setupAction(data) {
+    Object.getOwnPropertyNames(data).forEach(p => {
+        if(p === '_attributes') {
+            data[p] = checkAction(data[p])
+        }
+        if(typeof data[p] === 'object') {
+            setupAction(data[p])
+        }
+    })
+    return data
+}
+function checkAction(obj) {
+    let actions = obj.action
+    if(actions) {
+        const list = actions.split(',')
+        for(let i=0; i< list.length; i++) {
+            let act = list[i]
+            let actC = act.charAt(0).toUpperCase()+act.substring(1).toLowerCase()
+            let actor = "handle"+actC
+            obj[act] = '!'+actor
+            let actMethod = {
+                name: actor,
+                method: `{try{this.com.getApp().callPageAction(this.props.action, ev)}catch(e) {console.error("Error in ${act} handler '"+this.props.action+"':",e)}}`
+            }
+            actionMethods.push(actMethod)
+        }
+        delete obj.action
+    }
+    return obj
 }
 
 class PropDef {
@@ -152,45 +190,6 @@ class ElementDefinition {
     tag: string
     props:PropDef[]
     children: ElementDefinition[]
-}
-
-// Dead function.  Use xml-js module instead.
-function parseElementDefinitions(line:string, currentDef:ElementDefinition): ElementDefinition[] {
-    const defs = ([] as ElementDefinition[])
-    let elDef = currentDef || new ElementDefinition()
-    let pn = line.indexOf(' ')
-    if(!elDef.tag) {
-        let tn = line.indexOf('<')
-        if (tn !== -1) {
-            let en = line.indexOf(' ', tn)
-            if (en === -1) en = line.indexOf('/', tn)
-            if (en === -1) en = line.indexOf('>', tn)
-            if (en == -1) en = line.length
-            elDef.tag = line.substring(tn+1, en)
-            pn = en
-        }
-    }
-    while (line.charAt(pn) === ' ') {
-        let en = line.indexOf('=', pn)
-        if (en === -1) en = line.indexOf(' ', pn)
-        if (en === -1) en = line.indexOf('/', pn)
-        if (en === -1) en = line.indexOf('>', pn)
-        if (en == -1) en = line.length
-        let prop = line.substring(pn+1, en)
-        if(line.charAt(en) === '=') {
-            let vn = en+1
-            en = line.indexOf(' ', vn)
-            if (en === -1) en = line.indexOf('/', vn)
-            if (en === -1) en = line.indexOf('>', vn)
-            if (en === -1) en = line.indexOf('<', vn)
-            if (en == -1) en = line.length
-            elDef.props.push({name:prop, value:line.substring(vn, en)})
-            pn = en
-        }
-    }
-
-
-    return defs
 }
 
 /**
@@ -204,6 +203,23 @@ export function enumerateAndConvert(dirpath:string, outType:string, outDir:strin
     files.forEach(file => {
         if(file.match(/.tbcm?$/)) {
             const info = readComponent(path.join(dirpath, file))
+            if(outType === 'riot') {
+                const fileOut = path.join(outDir, file.substring(0, file.lastIndexOf('.')) + '.riot')
+                writeRiotFile(info,fileOut)
+            }
+        } else {
+            let subdir = path.join(dirpath, file)
+            let stat = fs.lstatSync(subdir)
+            if(stat.isDirectory()) {
+                enumerateAndConvert(subdir, outType, path.join(outDir, file))
+            }
         }
     })
 }
+
+/* TODO:
+ - read action props with (action|action, name) syntax
+ - handle multiple actions
+ - read multiline bind values
+
+ */

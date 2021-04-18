@@ -256,3 +256,75 @@ Logic
     </script>
 </main-page>
 ```
+------------
+-----------
+#### Thoughts and considerations
+So, I'm in process of implementing some of this.  I have
+a first version of tbcm parsing in place.
+
+- I'll be rendering the layout back out in xml for riot
+so I'll just use the js-xml converter to do that.
+  
+- when I get to {N} rendering, I'll need to handle
+if, each, and slot in intelligent ways.
+  
+- Speaking of which: how do we handle a re-layout update
+if the conditional changes (i.e. if state changes, or each list updates)?
+
+- Some things probably won't work in {N} the same way
+
+- Need to allow direct code alternatives.
+
+--------
+- Need different notation for event handlers vs. property getters
+- $(click|tap) $Foo 
+
+- action="(onclick|tap, name)" => onAction(ev) or name(ev)
+- action="(onfocus, onFocus) => onFocus(ev)
+
+- common code needs this context 'cm' must become this.com
+
+--------------------
+
+### Where at 4/17:
+
+- test-comp.tbcm makes a working superficial control.
+- need to test bindings<br/>
+    √ This works, but a reminder:
+    Bindings need to be passed in by caller
+    To bind as part of construction in code,
+    you would need to do this in the beforeLayout section
+    with a model pull or else define a bind prop
+    √ make a helper to add a property <br/>
+    √ try/catch handlers<br/>
+- need to test actions<br/>
+  √ basics work<br/>
+  √ Change reader parse and record to pick up param block<br/>
+  Then writer can include this in method<br/>
+  <del>◊ use helper to call to app</del><br/>
+  √ map 'action' to handler call to activity<br/>
+  ◊ change writer to intercept 'press=' in expressed xml 
+  and map aliases to native event names (eg: press=onclick, tap)<br/>
+  ◊ wait and see how we want to handle non-ui events.
+  ◊ maybe 'supportsPress="true"' is more appropriate, with
+  'press' the prop instead of 'action'
+- need to test compositing<br/>
+- need to try all this for mobile<br/>
+
+--- 
+At this point, let's just make our suite of controls
+and see what pops up.
+
+ - hold off on slot now until we figure what it means
+ in context. ◊ a reserved space where children can be
+   generated into.
+    - basically, a StackLayout (div) with a targeted
+    purpose.
+   
+ - do label, button, fill-space.
+ - leave layouts as direct
+ - leave page/menu bar as direct
+
+What other controls do we need?
+
+
