@@ -6,14 +6,6 @@ import * as fs from 'fs'
 
 export function writeRiotFile(info:ComponentInfo, pathname:string) {
 
-    let srcComp = '/src/components'
-    let cdn = pathname.indexOf(srcComp)+srcComp.length
-    let lsn = pathname.lastIndexOf('/')
-    let btwn = pathname.substring(cdn, lsn)
-    let level = btwn.split('/').length
-    let pfx = '../'.repeat(level+1)
-
-
     const layin = Object.assign({}, info.layout)
     const xml = convert.js2xml(layin, {
         compact:true,
@@ -27,13 +19,13 @@ export function writeRiotFile(info:ComponentInfo, pathname:string) {
     page += info.scss
     page += '\n</style>\n'
     page += `<script>`
-    page += scriptInnards(info.methods, info.params, pfx)
+    page += scriptInnards(info.methods, info.params)
     page += `</script>`
     page += `\n</${info.id}>\n`
     fs.writeFileSync(pathname, page)
 }
 
-function scriptInnards(methods:any, params: any, pfx:string) {
+function scriptInnards(methods:any, params: any) {
     let tagCode = ''
     Object.getOwnPropertyNames(methods).forEach(key => {
         let prm = params[key]
@@ -42,7 +34,7 @@ function scriptInnards(methods:any, params: any, pfx:string) {
     })
     let script =
 `    
-import {newCommon} from "${pfx}node_modules/thunderbolt-framework/component"
+import {newCommon} from 'Framework/app-core/ComCommon'
 export default {
     onBeforeMount(props, state) {
         try {

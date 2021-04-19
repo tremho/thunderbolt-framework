@@ -216,10 +216,3 @@ export function enumerateAndConvert(dirpath:string, outType:string, outDir:strin
         }
     })
 }
-
-/* TODO:
- - read action props with (action|action, name) syntax
- - handle multiple actions
- - read multiline bind values
-
- */

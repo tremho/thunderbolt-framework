@@ -35,6 +35,7 @@ export default {
         // console.log(this.root.tagName, 'onUnmounted', props, state)
     },
     reset() {
+        console.warn('>>>> Component reset '+this.root.tagName)
         this._isReset = true;
         this.bound = new Object()
         cm.bindComponent()

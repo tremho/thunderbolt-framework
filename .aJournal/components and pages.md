@@ -327,4 +327,27 @@ and see what pops up.
 
 What other controls do we need?
 
+----
+### Pages
+
+- √ Page conversion is working!!
+- should do a translation for bind references
+- should do an action mapping of aliases.
+
+###### Here's the syntax
+- for components:
+    - $Name = refers to getter function that must be defined.
+    pages uses (), but components don't.
+    ◊ possibly make these optional.  
+    it can return from this.bind or this.props or anything it wants
+    - $!Name - refers to an event function. it's not used because
+    we do our action mapping instead.
+      
+- for pages:
+    - $Name refers to a named binding, same as {b('Name')}
+    - $$Name refers to page data,
+      and is the same as $data.Name
+
+    - $Name() refers to a getter function that works the
+    same as components. the () are required on pages.
 

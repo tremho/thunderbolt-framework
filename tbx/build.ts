@@ -6,6 +6,7 @@ import {gatherInfo} from './gatherInfo'
 import {createSMX} from './smx'
 import {makePageList} from "./mainPageList";
 import * as componentReader from './tbFiles/ComponentReader'
+import * as pageReader from './tbFiles/PageReader'
 import * as os from "os"
 import * as webpack from "webpack";
 import * as UglifyPlugin from "uglifyjs-webpack-plugin"
@@ -335,6 +336,9 @@ function compileScss() {
 function makeRiotComponents() {
     const componentsDir = path.join(projPath, 'src', 'components')
     componentReader.enumerateAndConvert(componentsDir, 'riot', componentsDir)
+
+    const pageDir = path.join(projPath, 'src', 'pages')
+    pageReader.enumerateAndConvert(pageDir, 'riot', pageDir)
 }
 
 function summary() {
