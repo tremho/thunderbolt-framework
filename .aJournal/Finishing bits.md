@@ -65,7 +65,7 @@ Then for NS we would have a line like:
 `this.addBinding(this.span2_text, 'foobar', 'text')`
 
 I like this.  Let's
-- [ ] Refactor the riot work to take bind props directly.
+- [X] Refactor the riot work to take bind props directly.
 - [ ] Refactor the NS work to add the bindings where the
 property is issued.
  

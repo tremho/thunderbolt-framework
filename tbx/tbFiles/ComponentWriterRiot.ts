@@ -3,16 +3,23 @@ import {ComponentInfo} from "./ComponentInfo";
 import * as convert from 'xml-js'
 import * as fs from 'fs'
 
+let actMethods = {}
 
 export function writeRiotFile(info:ComponentInfo, pathname:string) {
 
     const layin = Object.assign({}, info.layout)
+    // convertAction(layin)
     const xml = convert.js2xml(layin, {
         compact:true,
         spaces: 4,
         attributeValueFn:riotProp,
         textFn:riotProp
     })
+    Object.getOwnPropertyNames(actMethods).forEach(p => {
+        info.methods[p] = actMethods[p]
+        info.params[p] = 'ev'
+    })
+
     let page = `<${info.id} bind="${info.bind}">\n`
     page += xml
     page += '\n<style>\n'
@@ -29,7 +36,15 @@ function scriptInnards(methods:any, params: any) {
     let tagCode = ''
     Object.getOwnPropertyNames(methods).forEach(key => {
         let prm = params[key]
-        let value = '{ try { ' +methods[key] + ' } catch(e) { console.error("error executing $'+key+':",e) } }'
+        let code = methods[key]
+        let lines = code.split('\n')
+        code = lines.join('\n            ').trim()
+        let value = ''
+        if(key === 'handleAction') {
+            value = '{\n        ' +lines.join('\n      ').trim()
+        } else {
+            value = '{\n        try ' + code + ' catch(e) {\n                console.error("error executing \'' + key + '\':",e)\n          }\n    }'
+        }
         tagCode += `${key}(${prm}) ${value},\n    `
     })
     let script =
@@ -67,13 +82,53 @@ export default {
     return script
 }
 
-function riotProp(val) {
+function riotProp(val, key) {
+    if(val.charAt(0) === val.charAt(val.length-1) && val.charAt(0) === '"' || val.charAt(0) === "'") {
+        val = val.substring(1, val.length-1)
+    }
     if(val.charAt(0) === '$') {
-        let name = val.substring(1)
-        val = `{${name}()}`
-    } else if(val.charAt(0) === '!') {
-        let name = val.substring(1)
-        val = `{${name}}`
+        if(val.charAt(1) === '$') {
+            let name = val.substring(2)
+            val = `{b('data.${name}')}`
+        } else {
+            let name = val.substring(1)
+            val = `{b('${name}')}`
+        }
     }
     return val
+}
+
+function mapAction(tag) {
+    switch(tag.trim().toLowerCase()) {
+        case 'onclick':
+        case 'click':
+        case 'tap':
+        case 'press':
+            return 'onclick'
+
+        default:
+            return tag
+    }
+}
+
+function convertAction(obj) {
+    Object.getOwnPropertyNames(obj).forEach(p => {
+        if(p.charAt(0) === '_') {
+            if (p === '_attributes') {
+                const atts = obj[p]
+                Object.getOwnPropertyNames(atts).forEach(ak => {
+                    if (ak === 'action') {
+                        let act = mapAction(atts[ak])
+                        atts[act] = '{this.handleAction}'
+                        delete atts.action
+                        obj[p] = atts
+                    }
+                })
+            }
+        } else {
+            convertAction(obj[p])
+        }
+
+    })
+
 }

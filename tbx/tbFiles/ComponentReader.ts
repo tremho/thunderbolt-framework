@@ -76,7 +76,9 @@ function readComponent(filepath:string): ComponentInfo {
                         }
                         break
                 }
-            } else if(line.charAt(0) === '$') {
+            } else if(line.substring(0,12) === 'beforeLayout' ||
+                      line.substring(0,11) === 'afterLayout'  ||
+                      line.substring(0,8) === 'onAction') {
                 let en = line.indexOf('(', 1)
                 if (en !== -1) {
                     let mtg = line.substring(0, en).trim()
@@ -88,33 +90,15 @@ function readComponent(filepath:string): ComponentInfo {
                     if (blkend === -1) blkend = str.indexOf('\n#', pos)
                     if (blkend === -1) blkend = str.indexOf('\nbeforeLayout', pos)
                     if (blkend === -1) blkend = str.indexOf('\nafterLayout', pos)
+                    if (blkend === -1) blkend = str.indexOf('\nonAction', pos)
                     if (blkend === -1) blkend = str.indexOf('\n<', pos)
                     if (blkend === -1) blkend = str.length
                     blkend = str.lastIndexOf('}', blkend)+1
                     let code = str.substring(pos, blkend).trim()
-                    let name = mtg.substring(1, mtg.length)
-                    info.methods[name] = code
-                    info.params[name] = pm
-                    state = ParsedState.methods
-                }
-            } else if(line.substring(0,12) === 'beforeLayout' || line.substring(0,11) === 'afterLayout') {
-                let en = line.indexOf('(', 1)
-                if (en !== -1) {
-                    let mtg = line.substring(0, en).trim()
-                    let pe = line.indexOf(')', en)
-                    let pm = line.substring(en+1, pe)
-                    let pos = str.indexOf(mtg)+mtg.length
-                    pos = str.indexOf('{', pos)
-                    let blkend = str.indexOf('\n$', pos)
-                    if (blkend === -1) blkend = str.indexOf('\n#', pos)
-                    if (blkend === -1) blkend = str.indexOf('\nbeforeLayout', pos)
-                    if (blkend === -1) blkend = str.indexOf('\nafterLayout', pos)
-                    if (blkend === -1) blkend = str.indexOf('\n<', pos)
-                    if (blkend === -1) blkend = str.length
-                    blkend = str.lastIndexOf('}', blkend)+1
-                    let code = str.substring(pos, blkend).trim()
-                    let name = line.substring(0,12)
+                    let name = ''
+                    if(line.substring(0, 12) === 'beforeLayout') name = 'beforeLayout'
                     if(line.substring(0, 11) === 'afterLayout') name = 'afterLayout'
+                    if(line.substring(0, 8) === 'onAction') name = 'onAction'
                     info.methods[name] = code
                     info.params[name] = pm
                     state = ParsedState.methods
@@ -154,34 +138,61 @@ function readComponent(filepath:string): ComponentInfo {
 let actionMethods:any[] = []
 function setupAction(data) {
     Object.getOwnPropertyNames(data).forEach(p => {
-        if(p === '_attributes') {
-            data[p] = checkAction(data[p])
-        }
-        if(typeof data[p] === 'object') {
+        if(p.charAt(0) === '_') {
+            if (p === '_attributes') {
+                let atts = checkAction(data[p])
+                Object.getOwnPropertyNames(atts).forEach(ak => {
+                    if(ak === 'action') {
+                        atts[ak] = '{ this.handleAction }'
+                    }
+                })
+            }
+        } else {
             setupAction(data[p])
         }
     })
     return data
 }
 function checkAction(obj) {
-    let actions = obj.action
-    if(actions) {
-        const list = actions.split(',')
-        for(let i=0; i< list.length; i++) {
-            let act = list[i]
-            let actC = act.charAt(0).toUpperCase()+act.substring(1).toLowerCase()
-            let actor = "handle"+actC
-            obj[act] = '!'+actor
-            let actMethod = {
-                name: actor,
-                method: `{try{this.com.getApp().callPageAction(this.props.action, ev)}catch(e) {console.error("Error in ${act} handler '"+this.props.action+"':",e)}}`
-            }
-            actionMethods.push(actMethod)
+    if(obj.action) {
+        let actMethod = {
+            name: 'handleAction',
+            method:
+`
+try {
+      if(typeof this.onAction === 'function') {
+          if(this.onAction(ev)) {
+              return
+          }
+      }
+      this.com.getApp().callPageAction(this.props.action, ev)
+    } catch(e) {
+      console.error("Error in action handler '"+this.props.action+"':", e)
+    }
+}                
+`
         }
+        actionMethods.push(actMethod)
+        let mapped = mapAction(obj.action)
+        obj[mapped] = '{handleAction}'
         delete obj.action
     }
     return obj
 }
+
+function mapAction(tag) {
+    switch(tag.trim().toLowerCase()) {
+        case 'onclick':
+        case 'click':
+        case 'tap':
+        case 'press':
+            return 'onclick'
+
+        default:
+            return tag
+    }
+}
+
 
 class PropDef {
     name:string
@@ -204,12 +215,14 @@ export function enumerateAndConvert(dirpath:string, outType:string, outDir:strin
     files.forEach(file => {
         if(file.match(/.tbcm?$/)) {
             const info = readComponent(path.join(dirpath, file))
-            const fileOut = path.join(outDir, file.substring(0, file.lastIndexOf('.')) + outType === 'riot'? '.riot' : '.js')
+            let fileout = path.join(outDir, file.substring(0, file.lastIndexOf('.')))
 
             if(outType === 'riot') {
-                writeRiotFile(info,fileOut)
+                fileout += '.riot'
+                writeRiotFile(info, fileout)
             } else {
-                writeNativeScriptFile(info,fileOut)
+                fileout += '-tb.js'
+                writeNativeScriptFile(info, fileout)
             }
         } else {
             let subdir = path.join(dirpath, file)
