@@ -3,6 +3,8 @@ import * as path from 'path'
 import * as os from 'os'
 import {executeCommand} from "./execCmd";
 import {gatherInfo} from "./gatherInfo";
+import * as componentReader from './tbFiles/ComponentReader'
+import * as pageReader from "./tbFiles/PageReader";
 
 let tnsPath
 let nsRoot
@@ -59,7 +61,7 @@ export function doNativeScript() {
     createNSProjectIfNotExist().then(() => {
         copySources().then(() => {
             migrateAppBack()
-            migratePages()
+            makeNativeScriptComponents()
             migrateLaunch()
             npmInstall().then(() => {
                 console.log('Project '+ projName+' exported to Nativescript project at '+path.join(outPath, projName))
@@ -154,12 +156,6 @@ function copySources() {
     })
 }
 
-function migratePages() {
-    let destPath = path.join(outPath, projName, 'app', 'pages')
-    fs.rmdirSync(destPath, {recursive: true})
-
-}
-
 function migrateLaunch() {
     console.log('writing launch files...')
     let destPath = path.join(outPath, projName, 'app', 'launch')
@@ -176,3 +172,11 @@ function npmInstall() {
     return executeCommand('npm', ['install'])
 }
 
+function makeNativeScriptComponents() {
+    console.log('ready to makeNativeScriptComponents', projPath, tbxPath)
+    const componentsDir = path.join(projPath, 'src', 'components')
+    componentReader.enumerateAndConvert(componentsDir, 'nativescript', componentsDir)
+
+    const pageDir = path.join(projPath, 'src', 'pages')
+    pageReader.enumerateAndConvert(pageDir, 'nativescript', pageDir)
+}

@@ -1,7 +1,7 @@
 ###TODO Roundup:
 
 ##### Countdown
-- final getter work for pages (components)
+- √ final getter work for pages (components)
 - mobile components and pages
 - tbx clean/prepare/compile and init
 
@@ -39,3 +39,56 @@ __Docs:__
 - Tool and indicator extensions
 - Exporting to NativeScript
 - Basic use of NativeScript
+
+
+-------------
+###### Journaling
+##### 4/20
+export to ns in progress, but binding is a question.
+With Riot, we call a 'getter' that returns the bound value
+on update to the local property
+With NS, we need to bind the local property to the bound
+value with the Observable.
+
+These are similar and as long as the getter simply returns
+the bound value, equivalent.  
+
+But if we make the semantic refer to the bound value,
+we could ditch the getter and just return the value via
+the 'b()' method and use this for binding at the NS side.
+
+So instead of `$Text` and `$Text() { return this.bound.foobar }`
+we simply say `$foobar` or `$$foobar` and conversion is
+`b('foobar')` or `b('data.foobar')` respectively.
+
+Then for NS we would have a line like:
+`this.addBinding(this.span2_text, 'foobar', 'text')`
+
+I like this.  Let's
+- [ ] Refactor the riot work to take bind props directly.
+- [ ] Refactor the NS work to add the bindings where the
+property is issued.
+ 
+```
+// src .tbcm 
+<div width="$fooWidth">
+
+// riot
+<div width="{b('fooWidth')}">
+
+// ns
+this.div1=new Div()
+this.addBinding(this.div1, 'fooWidth', 'width')
+```
+This potentially leaves the sticky issue of first value.
+we can get that from props, but only want to do that first 
+time.  Best done in onBeforeMount and just after createControl, 
+such as setLocalBinds (have it take the bind name from props and set to viewprop)
+
+
+
+
+
+
+
+

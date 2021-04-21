@@ -7,6 +7,7 @@ import * as path from 'path'
 import * as convert from 'xml-js'
 import {ComponentInfo} from "./ComponentInfo";
 import {writeRiotFile} from "./ComponentWriterRiot";
+import {writeNativeScriptFile} from "./ComponentWriterNS";
 
 enum ParsedState {
     none,
@@ -203,9 +204,12 @@ export function enumerateAndConvert(dirpath:string, outType:string, outDir:strin
     files.forEach(file => {
         if(file.match(/.tbcm?$/)) {
             const info = readComponent(path.join(dirpath, file))
+            const fileOut = path.join(outDir, file.substring(0, file.lastIndexOf('.')) + outType === 'riot'? '.riot' : '.js')
+
             if(outType === 'riot') {
-                const fileOut = path.join(outDir, file.substring(0, file.lastIndexOf('.')) + '.riot')
                 writeRiotFile(info,fileOut)
+            } else {
+                writeNativeScriptFile(info,fileOut)
             }
         } else {
             let subdir = path.join(dirpath, file)

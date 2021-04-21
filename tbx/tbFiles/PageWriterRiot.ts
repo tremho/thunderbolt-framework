@@ -5,8 +5,6 @@ import * as fs from 'fs'
 
 export function writeRiotPage(info:PageInfo, pathname:string) {
 
-    console.log(JSON.stringify(info, null, 2))
-
     const layin = Object.assign({}, info.content)
     const xml = convert.js2xml(layin, {
         compact:true,

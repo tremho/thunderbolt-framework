@@ -42,7 +42,6 @@ function readPage(filepath:string):PageInfo {
                     let code = str.substring(pos, blkend).trim()
                     let name = mtg.substring(1, mtg.indexOf('(')).trim()
                     info.methods[name] = code
-                    console.log(name + " --->" + code)
                     info.params[name] = pm
                     state = ParsedState.methods
                 }
