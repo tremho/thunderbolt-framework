@@ -88,10 +88,13 @@ function processContainer(container, name='container', level=0) {
     for(let i=0; i<atts.length; i++) {
         let ak = atts[i].key
         let av = atts[i].value
-        // todo: translate the value from $ to a getter
-        // otherwise (pass through general props) ?
-        out += `${cname}.set('${ak}','${av}')\n`
-        out += ' '.repeat(4+level*4)
+        let em = checkAction(ak, av)
+        if(em) {
+            out += `${cname}.on(\'${em}\', this.handleAction)\n`
+        } else {
+            out += `${cname}.set('${ak}','${av}')\n`
+        }
+        out += ' '.repeat(4 + level * 4)
     }
     if(text) {
         let tname = `${cname}_text`
@@ -124,9 +127,25 @@ function addMethods(methods, params) {
         let param = params[name] || ''
         let code = methods[name] || '{}'
         // pretty up the code a little
-        code = code.split('\n').join('\n    ')
+        code = code.split('\n').join('\n    ').trim()
+
+        if(code.charAt(0) !== '{') code = '{\n        '+code
+        if(code.charAt(code.length-1) !== '}') code += '}'
 
         out += `${name}(${param}) ${code}\n    `
     })
     return out
+}
+
+function checkAction(key, value) {
+    let eventMapped = ''
+    switch(key) {
+        case 'onclick': // this is what will appear after similar reader conversion
+        case 'click':
+        case 'tap':
+        case 'press':
+            eventMapped = 'tap'
+            break;
+    }
+    return eventMapped
 }

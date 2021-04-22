@@ -8,7 +8,6 @@ let actMethods = {}
 export function writeRiotFile(info:ComponentInfo, pathname:string) {
 
     const layin = Object.assign({}, info.layout)
-    // convertAction(layin)
     const xml = convert.js2xml(layin, {
         compact:true,
         spaces: 4,
@@ -111,24 +110,3 @@ function mapAction(tag) {
     }
 }
 
-function convertAction(obj) {
-    Object.getOwnPropertyNames(obj).forEach(p => {
-        if(p.charAt(0) === '_') {
-            if (p === '_attributes') {
-                const atts = obj[p]
-                Object.getOwnPropertyNames(atts).forEach(ak => {
-                    if (ak === 'action') {
-                        let act = mapAction(atts[ak])
-                        atts[act] = '{this.handleAction}'
-                        delete atts.action
-                        obj[p] = atts
-                    }
-                })
-            }
-        } else {
-            convertAction(obj[p])
-        }
-
-    })
-
-}
