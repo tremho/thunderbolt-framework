@@ -99,9 +99,13 @@ export class ComCommon extends NotCommon{
 
     public addProperty(name, value) {
         try {
-            let props = Object.assign({},this.riot.props || {})
-            Object.defineProperty(props, name, {value})
-            Object.defineProperty(this.riot, "props", {value: props})
+            if(this.riot) {
+                let props = Object.assign({}, this.riot.props || {})
+                Object.defineProperty(props, name, {value})
+                Object.defineProperty(this.riot, "props", {value: props})
+            } else {
+                this.rootComponent.set(name, value)
+            }
         } catch(e) {
             console.error(e)
         }

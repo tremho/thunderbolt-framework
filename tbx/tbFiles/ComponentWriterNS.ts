@@ -1,6 +1,7 @@
 import {ComponentInfo} from "./ComponentInfo";
 // import * as convert from 'xml-js'
 import * as fs from 'fs'
+import * as path from 'path'
 
 
 export function writeNativeScriptFile(info:ComponentInfo, pathname:string) {
@@ -11,19 +12,24 @@ export function writeNativeScriptFile(info:ComponentInfo, pathname:string) {
     let parts = info.id.split('-')
     let name = ''
     let i = 0
-    while(parts[i++]) {
-        name += parts[0].charAt(0).toUpperCase() + parts[0].substring(1).toLowerCase()
+    while(parts[i]) {
+        name += parts[i].charAt(0).toUpperCase()+parts[i++].substring(1).toLowerCase()
     }
     let out = `module.exports.${name} = class extends CompnentBase {`
-    out += '\n    createControl() {\n        '
-
+    out += '\n    createControl() {\n        try {\n            '
     out += processContainer(info.layout)
 
     out = out.trim()
-    out += '\n    }\n    '
+    out += '\n        } catch(e) {\n            console.error("Unexpected Error creating '+name+':", e)\n        }\n'
+    out += '    }\n    '
     out += addMethods(info.methods, info.params)
     out += '\n}\n'
-    console.log(out)
+
+    let destPath = pathname.substring(0, pathname.lastIndexOf(path.sep))
+    if(!fs.existsSync(destPath)) {
+        fs.mkdirSync(destPath, {recursive: true})
+    }
+    fs.writeFileSync(pathname, out)
 }
 
 function mappedComponent(tag) {
@@ -74,6 +80,7 @@ function findChildren(obj) {
 }
 
 function processContainer(container, name='container', level=0) {
+    const indent = 12
     let out = ''
     let cname = level ? 'this.'+name : 'this.container'
     if(name && level) {
@@ -82,7 +89,7 @@ function processContainer(container, name='container', level=0) {
             tag = tag.substring(0, tag.length-1)
         }
         out += `${cname} = new ${mappedComponent(tag)}()\n`
-        out += ' '.repeat(4+level*4)
+        out += ' '.repeat(indent)
     }
     let {atts, text} = findAttributesAndText(container)
     for(let i=0; i<atts.length; i++) {
@@ -94,14 +101,14 @@ function processContainer(container, name='container', level=0) {
         } else {
             out += `${cname}.set('${ak}','${av}')\n`
         }
-        out += ' '.repeat(4 + level * 4)
+        out += ' '.repeat(indent)
     }
     if(text) {
         let tname = `${cname}_text`
         out += `${tname} = new Label()\n`
-        out += ' '.repeat(4+level*4)
+        out += ' '.repeat(indent)
         out += `${cname}.addChild(${tname})\n`
-        out += ' '.repeat(4+level*4)
+        out += ' '.repeat(indent)
     }
     let children = findChildren(container)
     for(let i=0; i<children.length; i++) {
@@ -109,7 +116,7 @@ function processContainer(container, name='container', level=0) {
         name = uniqueName(name)
         out += processContainer(data, name, level+1)
         out += `${cname}.addChild(this.${name})\n`
-        out += ' '.repeat(4+level*4)
+        out += ' '.repeat(indent)
     }
 
     return out

@@ -367,10 +367,15 @@ export class AppCore {
         if(check.mobile) {
             let pageref = '~/pages/' + pageId + '-page'
 
+            console.log('>>>>> mobile pageref', pageref)
+
             const navigationEntry = {
                 moduleName: pageref,
                 backstackVisible: !skipHistory
             };
+            console.log('>>> the frame', theFrame)
+            console.log('>>> navigation Entry', navigationEntry)
+
             theFrame && theFrame.navigate(navigationEntry)
 
             // apparently, we can pass a function instead of a navigationEntry to construct a Page

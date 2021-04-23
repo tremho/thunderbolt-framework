@@ -59,13 +59,12 @@ export function doNativeScript() {
     collectInfo()
     readProjPackage()
     createNSProjectIfNotExist().then(() => {
-        copySources().then(() => {
-            migrateAppBack()
-            makeNativeScriptComponents()
-            migrateLaunch()
-            npmInstall().then(() => {
-                console.log('Project '+ projName+' exported to Nativescript project at '+path.join(outPath, projName))
-            })
+        copySources()
+        migrateAppBack()
+        makeNativeScriptComponents()
+        migrateLaunch()
+        npmInstall().then(() => {
+            console.log('Project '+ projName+' exported to Nativescript project at '+path.join(outPath, projName))
         })
     })
 }
@@ -108,7 +107,7 @@ function readProjPackage() {
 function migrateAppBack() {
     // read our tbAppBack source
     const tbAppSrcPath = pkgInfo.backMain || 'src/tbAppBack.ts'
-    console.log('migrating '+ tbAppSrcPath+'...')
+    // console.log('migrating '+ tbAppSrcPath+'...')
     let source = ""
     try {
         source = fs.readFileSync(path.join(projPath, tbAppSrcPath)).toString()
@@ -131,10 +130,13 @@ function migrateAppBack() {
     source = lines.join('\n')
     let dest = path.join(outPath, projName, 'app', 'tbAppBack.ts')
     try {
-        if(fs.existsSync(dest)) {
-            fs.unlink(dest)
+        if(testForUpdate(source, dest)) {
+            console.log('migrating ', source)
+            if (fs.existsSync(dest)) {
+                fs.unlink(dest)
+            }
+            fs.writeFileSync(dest, source)
         }
-        fs.writeFileSync(dest, source)
     } catch(e) {
         console.error('Unable to write '+dest)
         throw e
@@ -142,17 +144,51 @@ function migrateAppBack() {
     console.log('... okay')
 }
 
-// TODO: replace with a recursive dir read and check files for make-style newer-than change
+function testForUpdate(src, dest) {
+    if(!fs.existsSync(src)) {
+        return false; // source does not exist; no copy
+    }
+    if(!fs.existsSync(dest)) {
+        return true; // destination does not exist; do copy
+    }
+    const sstat = fs.lstatSync(src)
+    const dstat = fs.lstatSync(dest)
+
+    // return trye if source is newer
+    return (sstat.mtimeMs > dstat.mtimeMs)
+}
+
 function copySources() {
     const src = path.join(projPath, 'src')
     const dst = path.join(outPath, projName, 'app')
-    return new Promise(resolve => {
-        fs.copy(src, dst, err => {          // note: fs-extra copy directories
-            if (err) {
-                throw Error('error copying sources: ' + err)
+    copySourceDirectory(src, dst)
+}
+
+function copySourceFile(src, dest) {
+    if(testForUpdate(src,dest)) {
+        console.log('copying ', src, dest)
+        let destdir = dest.substring(0, dest.lastIndexOf(path.sep))
+        if(!fs.existsSync()) {
+            fs.mkdirSync(destdir, {recursive: true})
+        }
+        fs.copyFileSync(src, dest)
+    } else {
+        console.log('skipping ', src)
+    }
+}
+function copySourceDirectory(src, dest) {
+    const files = fs.readdirSync(src)
+    files.forEach(file => {
+        const srcpath = path.join(src, file)
+        const dstpath = path.join(dest, file)
+        const fstat = fs.lstatSync(srcpath)
+        if(fstat.isDirectory()) {
+            if(file !== 'pages' && file !== 'components') {
+                copySourceDirectory(srcpath, dstpath)
             }
-            resolve()
-        })
+        } else {
+            copySourceFile(srcpath, dstpath)
+        }
     })
 }
 
@@ -163,8 +199,8 @@ function migrateLaunch() {
         fs.mkdirSync(destPath)
     }
     let srcPath = path.join(tbxPath, 'nslaunch')
-    fs.copyFileSync(path.join(srcPath, 'main.ts.src'), path.join(destPath, 'main.ts'))
-    fs.copyFileSync(path.join(srcPath, 'main.xml.src'), path.join(destPath, 'main.xml'))
+    copySourceFile(path.join(srcPath, 'main.ts.src'), path.join(destPath, 'main.ts'))
+    copySourceFile(path.join(srcPath, 'main.xml.src'), path.join(destPath, 'main.xml'))
 }
 
 function npmInstall() {
@@ -175,8 +211,11 @@ function npmInstall() {
 function makeNativeScriptComponents() {
     console.log('ready to makeNativeScriptComponents', projPath, tbxPath)
     const componentsDir = path.join(projPath, 'src', 'components')
-    componentReader.enumerateAndConvert(componentsDir, 'nativescript', componentsDir)
+    let dest = path.join(outPath, projName, 'app', 'components')
+
+    componentReader.enumerateAndConvert(componentsDir, 'nativescript', dest)
 
     const pageDir = path.join(projPath, 'src', 'pages')
-    pageReader.enumerateAndConvert(pageDir, 'nativescript', pageDir)
+    dest = path.join(outPath, projName, 'app', 'pages')
+    pageReader.enumerateAndConvert(pageDir, 'nativescript', dest)
 }

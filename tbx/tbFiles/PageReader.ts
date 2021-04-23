@@ -3,6 +3,7 @@ import * as path from 'path'
 import * as convert from 'xml-js'
 import {PageInfo} from "./PageInfo";
 import {writeRiotPage} from "./PageWriterRiot";
+import {writeNativeScriptPage} from "./PageWriterNS";
 
 
 enum ParsedState {
@@ -108,9 +109,13 @@ export function enumerateAndConvert(dirpath:string, outType:string, outDir:strin
     files.forEach(file => {
         if(file.match(/.tbpg?$/)) {
             const info = readPage(path.join(dirpath, file))
+            let fileout = path.join(outDir, file.substring(0, file.lastIndexOf('.')))
+
             if(outType === 'riot') {
-                const fileOut = path.join(outDir, file.substring(0, file.lastIndexOf('.')) + '.riot')
-                writeRiotPage(info,fileOut)
+                fileout += '.riot'
+                writeRiotPage(info,fileout)
+            } else {
+                writeNativeScriptPage(info, dirpath, outDir)
             }
         } else {
             let subdir = path.join(dirpath, file)
