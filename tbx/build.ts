@@ -113,6 +113,7 @@ function getPackageJSONInfo() {
  * renderer bundle
  */
 function doWebpackBuild() {
+    console.log('Framework mapped to ', tbBuildSrc)
     return new Promise(resolve => {
         console.log('packing...')
         const genDir = path.join(projPath, '.gen')
@@ -146,12 +147,14 @@ function doWebpackBuild() {
                     Components: path.join(srcDir, 'components'),
                     Pages: appPages,
                     Framework: tbBuildSrc,
+                    'thunderbolt-framework': path.join(tbBuildSrc, '..'),
                     BuildPack: packPath,
                     FrameworkComponents: fwcomp,
                     RiotMain: riotMain
                 },
+                fallback: {fs: false, path: false, os: false},
                 modules: [modulesPath, appPages, genDir],
-                extensions: [ '.tsx', '.ts', '.js', '.riot', 'css', 'txt' ],
+                extensions: [ '.ts', '.js', '.riot', 'css', 'txt' ],
             },
             module: {
                 rules: [

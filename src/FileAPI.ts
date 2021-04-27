@@ -1,7 +1,13 @@
 
-import * as fs from 'fs'
-import * as path from 'path'
-import * as os from 'os'
+let fs, path, os
+
+try {
+    fs = require('fs')
+    path = require('path')
+    os = require('os')
+} catch(e) {
+    console.warn('FileAPI unavailable -- make a forking solution for this')
+}
 
 function PathNotFound(path:string) {
     class PathNotFound extends Error {
@@ -84,16 +90,16 @@ export function fileCopy(pathName:string, toPathName:string) {
     }
 }
 
-
-export type FileInfo = fs.Stats
+// TODO: should have a better fix for this overall
+// export type FileInfo = fs.Stats
 
 export class FileDetails  {
     parentPath: string
     fileName:string
-    info:FileInfo
+    info:any // FileInfo
 }
 
-export function fileStats(pathName:string):FileInfo {
+export function fileStats(pathName:string) /*:FileInfo*/ {
     try {
         return fs.lstatSync(pathName)
     } catch(e) {

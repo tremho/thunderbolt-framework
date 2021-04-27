@@ -211,6 +211,7 @@ export class AppCore {
     setupMenu(menuPath:string) {
         let menuData
         if(check.mobile) {
+            console.warn('please ignore warnings about Assets folder')
             let menuDataPath = nsfs.path.join(nsfs.knownFolders.currentApp().path, 'assets', menuPath)
             let file = nsfs.File.fromPath(menuDataPath)
             menuData = file.readTextSync(err=> {

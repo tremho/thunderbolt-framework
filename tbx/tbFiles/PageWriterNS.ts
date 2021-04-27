@@ -5,23 +5,11 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 export function writeNativeScriptPage(info:PageInfo, srcpath:string, outDir:string) {
-    /*
-    export class PageInfo {
-    id: string
-    noTitle: boolean
-    noBack: boolean
-    title:string
-    menuId:string
-    toolbarId:string
-    indicatorsId: string
-    content:any
-    methods: any = new Object()
-    params: any = new Object()
-}
-     */
 
-    let out = `<Page xmlns="http://schemas.nativescript.org/tns.xsd" loaded="onLoaded" navigatedTo="onNavigatedTo"`
-    out += `      xmlns:tb="~/components/tb-components"`
+    let xml = convert.js2xml(info.content, {compact:true, spaces: 4, ignoreComment:false, fullTagEmptyElement:false})
+
+    let out = `<Page xmlns="http://schemas.nativescript.org/tns.xsd" loaded="onLoaded" navigatedTo="onNavigatedTo"\n`
+    out += `      xmlns:tb="~/components/tb-components"\n`
     out += `      actionBarHidden="true"\n`
     out += '>\n'
     if(!info.noTitle) {
@@ -35,7 +23,7 @@ export function writeNativeScriptPage(info:PageInfo, srcpath:string, outDir:stri
         out += '>\n'
     }
     out += `        <tb:TBContent>\n`
-    out += `        <!-- we'll be putting the converted content here -->`
+    out += cleanup(xml)
     out += `        </tb:TBContent>\n`
     out += `    </tb:TBPage>\n`
     out += `</Page>\n`
@@ -53,10 +41,8 @@ export function writeNativeScriptPage(info:PageInfo, srcpath:string, outDir:stri
     const stub = `
     import {getTheApp} from 'thunderbolt-framework/mobile'
     import * as activity from './${id}-logic'
-    export function onNavigatedTo(arg) {
-        const app = getTheApp()
-        app.currentActivity = activity
-        activity.pageStart(app)
+    export function onNavigatedTo() {
+        getTheApp().launchActivity("${id}",activity) 
     }
     `
     src = path.join(srcpath, `${id}-page.tbpg`)
@@ -98,3 +84,53 @@ function copyUpdate(src,dest) {
         console.log('skipping ', src)
     }
 }
+
+// we have converted to xml, but we need to clean up the format and tweak the names
+function cleanup(xml) {
+    let out = ''
+    xml.split('\n').forEach(line => {
+        line = line.trim()
+        if(line.charAt(0) === '<') {
+            if(line.charAt(1) !== '!') {
+                let n = line.indexOf(/( \/>)/)
+                if (n === -1) n = line.length
+                let name = pascalCase(line.substring(1, n))
+                if(name.charAt(0) === '/') {
+                    name = pascalCase(line.substring(2, n))
+                    out += ' '.repeat(8)+ `</tb:${name}` + line.substring(n) + '\n'
+                } else {
+                    out += ' '.repeat(8)+ `<tb:${name}` + line.substring(n) + '\n'
+                }
+            } else {
+                out += ' '.repeat(8)+line+'\n'
+            }
+        }
+    })
+    if(out.charAt(out.length-1) !== '\n') out += '\n'
+    return out
+}
+
+function pascalCase(name) {
+    let out = ''
+    name.split('-').forEach(p => {
+       out += p.charAt(0).toUpperCase()+p.substring(1).toLowerCase()
+    })
+    return out
+}
+function camelCase(name) {
+    let pc = pascalCase(name)
+    return pc.charAt(0).toLowerCase()+pc.substring(1)
+}
+function hyphenate(name) {
+    let out = ''
+    let i = 1
+    let last = 0
+    while(i < name.length) {
+        if(name.charAt(i) === name.charAt(i).toUpperCase()) {
+            out += name.substring(last, i).toLowerCase()+'-'
+            last = i
+        }
+    }
+    return out
+}
+

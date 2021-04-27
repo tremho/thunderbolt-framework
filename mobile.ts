@@ -8,6 +8,7 @@ import {registerApp, TBBackApp, registerFrontApp, TBFrontApp, FrameworkBackConte
 import ComponentBase from './src/mobile/ComponentBase'
 import {ComCommon, LocalBind} from './src/app-core/ComCommon'
 import {AppCore, EventData, getTheApp, setTheApp} from "./src/app-core/AppCore";
+import * as componentExport from './src/components/mobile/ComponentExport'
 
 export {registerApp as registerApp}
 export {registerFrontApp as registerFrontApp}
@@ -21,4 +22,6 @@ export {AppCore as AppCore}
 export {EventData as EventData}
 export {getTheApp as getTheApp}
 export {setTheApp as setTheApp}
+export {componentExport as componentExport}
+
 
